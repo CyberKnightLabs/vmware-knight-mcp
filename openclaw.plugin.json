@@ -1,0 +1,24 @@
+{
+  "id": "vmware-knight",
+  "name": "VMware Knight",
+  "description": "AI-powered VMware vCenter/ESXi VM lifecycle and deployment with 60 MCP tools.",
+  "skills": [
+    "./skills"
+  ],
+  "mcpServers": {
+    "vmware-knight": {
+      "transport": "stdio",
+      "command": "uvx",
+      "args": [
+        "--from",
+        "vmware-knight==1.12.0",
+        "vmware-knight-mcp"
+      ]
+    }
+  },
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
+}

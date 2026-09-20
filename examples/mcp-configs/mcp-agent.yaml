@@ -1,0 +1,13 @@
+# mcp-agent (LastMile AI) configuration
+# Add to your mcp_agent.config.yaml
+
+mcp:
+  servers:
+    vmware-knight:
+      command: python
+      args:
+        - -m
+        - vmware_knight.mcp_server
+      cwd: /path/to/VMware Knight
+      env:
+        VMWARE_KNIGHT_CONFIG: ~/.vmware-knight/config.yaml

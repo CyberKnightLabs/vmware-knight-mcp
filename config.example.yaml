@@ -1,0 +1,54 @@
+# VMware Knight Configuration
+# Copy to ~/.vmware-knight/config.yaml and edit
+#
+# Passwords: copy .env.example to ~/.vmware-knight/.env and fill in passwords
+#   cp .env.example ~/.vmware-knight/.env
+#   chmod 600 ~/.vmware-knight/.env
+# See .env.example for naming convention details
+
+targets:
+  # vCenter Server
+  - name: prod-vcenter
+    host: vcenter-prod.example.com
+    port: 443
+    username: administrator@vsphere.local
+    # Set password via env: export VMWARE_PROD_VCENTER_PASSWORD=xxx
+    # The username below can also come from the environment:
+    #   export VMWARE_PROD_VCENTER_USERNAME=svc-account@vsphere.local
+    # Set both when a secret store supplies the pair — they resolve together,
+    # so rotating one without the other cannot happen.
+    type: vcenter
+    # Optional label for this target. An environment-scoped 'deny' rule in
+    # ~/.vmware/rules.yaml can match on it — e.g. freeze writes on 'production'.
+    # A target with no label is simply not matched by such a rule.
+    environment: production
+    # verify_ssl: true is the default (v1.5.15+). Set to false ONLY for
+    # self-signed certs in lab/dev environments — disables SSL verification.
+    # verify_ssl: false
+
+  # Standalone ESXi host
+  # Prefer FQDN over IP — required for Kerberos auth; IP also accepted
+  - name: lab-esxi
+    host: esxi-lab.example.com       # FQDN recommended; IP (e.g. 192.168.1.100) also works
+    port: 443
+    username: root
+    # Set password via env: export VMWARE_LAB_ESXI_PASSWORD=xxx
+    # Username override: export VMWARE_LAB_ESXI_USERNAME=root
+    type: esxi
+    # ESXi hosts typically ship with self-signed certs — uncomment if needed:
+    # verify_ssl: false
+
+# Scanner daemon settings
+scanner:
+  enabled: true
+  interval_minutes: 15
+  # log_types is not read by any code: the host-log pass always reads hostd,
+  # vmkernel and vpxa. Setting it changes nothing.
+  severity_threshold: warning  # critical, warning, or info
+  lookback_hours: 1
+
+# Notification settings
+notify:
+  log_file: ~/.vmware-knight/scan.log
+  webhook_url: ""  # Slack, Discord, or generic webhook URL
+  webhook_timeout: 10

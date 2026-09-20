@@ -1,0 +1,9 @@
+{
+  "vmware-knight": {
+    "command": "vmware-knight",
+    "args": ["mcp"],
+    "env": {
+      "VMWARE_KNIGHT_CONFIG": "~/.vmware-knight/config.yaml"
+    }
+  }
+}

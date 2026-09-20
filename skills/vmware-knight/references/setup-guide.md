@@ -1,0 +1,182 @@
+# Setup Guide
+
+## Installation
+
+All install methods fetch from the same source: [github.com/vmware-skills/VMware Knight](https://github.com/vmware-skills/VMware Knight) (MIT licensed). We recommend reviewing the source code before installing.
+
+```bash
+# Via PyPI (recommended for version pinning)
+uv tool install vmware-knight==1.12.0
+
+# Via Skills.sh (fetches from GitHub)
+npx skills add vmware-skills/VMware Knight#v1.12.0
+
+# Via ClawHub (fetches from ClawHub registry snapshot of GitHub)
+clawhub install @CyberKnightLabs/vmware-knight --version 1.12.0
+```
+
+### Claude Code
+
+`npx skills add` and `clawhub install` both place the skill in Claude Code's skills
+directory. To install it manually from a clone:
+
+```bash
+mkdir -p ~/.claude/skills/vmware-knight
+cp -r skills/vmware-knight/. ~/.claude/skills/vmware-knight/
+```
+
+For tool access (not just skill context), register the MCP server:
+
+```bash
+claude mcp add vmware-knight -- vmware-knight mcp
+```
+
+## Configuration
+
+```bash
+# 1. Install from PyPI (source: github.com/vmware-skills/VMware Knight)
+uv tool install vmware-knight==1.12.0
+
+# 2. Verify installation source
+vmware-knight --version  # confirms installed version
+
+# 3. Configure
+mkdir -p ~/.vmware-knight
+vmware-knight init  # generates config.yaml and .env templates
+chmod 600 ~/.vmware-knight/.env
+# Edit ~/.vmware-knight/config.yaml and .env with your target details
+```
+
+### Declare `environment:` on each target
+
+```yaml
+targets:
+  - name: prod-vcenter
+    host: vcenter-prod.example.com
+    environment: production   # production | staging | lab | <your own label>
+```
+
+`environment:` is an optional free-form label. Policy scopes its rules by this
+value, so an environment-scoped `deny` rule in `~/.vmware/rules.yaml` can match
+on it — for example, to freeze state-changing writes on `production`. A target
+with no label is simply not matched by such a rule. A rule refuses only what its
+`operations` / `min_risk_level` filters match, so scope it to write operations if
+reads should keep working. Rules are evaluated before every MCP tool call and
+every CLI command that reaches vCenter, and `operations` are MCP tool names — CLI commands are
+authorised under the same names, so one rule covers both. The shipped baseline
+denies nothing.
+
+## What Gets Installed
+
+The `vmware-knight` package installs a Python CLI binary and its dependencies (pyVmomi, Click, Rich, APScheduler, python-dotenv). No background services, daemons, or system-level changes are made during installation. The scheduled scanner (`daemon start`) only runs when explicitly started by the user.
+
+## Development Install
+
+```bash
+git clone --branch v1.12.0 https://github.com/vmware-skills/VMware Knight.git
+cd VMware Knight
+uv venv && source .venv/bin/activate
+# --no-sources: pyproject's [tool.uv.sources] points vmware-monitor at a sibling
+# checkout (../VMware-Monitor) for family development. A fresh clone has none, so
+# plain `uv pip install -e .` fails with "Distribution not found"; this takes
+# vmware-monitor (>=1.11.3) from PyPI instead.
+uv pip install --no-sources -e .
+```
+
+To develop against an unreleased vmware-monitor, clone
+[VMware-Monitor](https://github.com/vmware-skills/VMware-Monitor) next to this
+checkout (so `../VMware-Monitor` exists) and drop `--no-sources`. Plain `pip`
+ignores `[tool.uv.sources]` and needs neither.
+
+### Password obfuscation at rest
+
+On first load, any plaintext `*_PASSWORD` value in `.env` is automatically
+rewritten to a grep-safe `b64:<encoded>` form and decoded transparently at
+runtime, so a casual `grep` of the file no longer reveals the password. Values
+are read and written through python-dotenv's own parser, so the stored secret
+never drifts from what you configured (quotes, inline comments, and trailing
+whitespace are handled correctly).
+
+> **This is obfuscation, not encryption.** Anyone who can read the file can
+> still decode it. For real secrecy at rest, do not store the password in `.env`
+> at all — inject it from a secret manager (HashiCorp Vault, CyberArk, AWS
+> Secrets Manager, or a Kubernetes Secret) into the `*_PASSWORD` environment
+> variable at process start. The code reads the env var either way.
+
+## Security
+
+> **Disclaimer**: This is a community-maintained open-source project and is **not affiliated with, endorsed by, or sponsored by VMware, Inc. or Broadcom Inc.** "VMware" and "vSphere" are trademarks of Broadcom.
+
+- **Source Code**: Fully open source at [github.com/vmware-skills/VMware Knight](https://github.com/vmware-skills/VMware Knight) (MIT). The `uv` installer fetches the `vmware-knight` package from PyPI, which is built from this GitHub repository. We recommend reviewing the source code and commit history before deploying in production.
+- **TLS Verification**: Enabled by default. Setting `verify_ssl: false` is solely for ESXi hosts using self-signed certificates in isolated lab/home environments. In production, always use CA-signed certificates with full TLS verification.
+- **Credentials & Config**: This skill requires the following secrets, all stored in `~/.vmware-knight/.env` (`chmod 600`, loaded via `python-dotenv`):
+  - `VMWARE_<TARGET>_PASSWORD` — per-target password where `<TARGET>` is the uppercased target name from `config.yaml` (hyphens become underscores). Example: target named `vcenter-prod` uses `VMWARE_VCENTER_PROD_PASSWORD`.
+  - (Optional) Webhook URLs for Slack/Discord notifications
+
+  The config file `~/.vmware-knight/config.yaml` stores only target hostnames, ports, and usernames — it does **not** contain passwords or tokens. The env var `VMWARE_KNIGHT_CONFIG` points to this YAML file.
+- **Webhook Data Scope**: Webhook notifications are **disabled by default**. When enabled, the daemon posts to **user-configured URLs only** (Slack, Discord, or any HTTP endpoint you control); no data is sent to any other service. Each payload carries critical/warning counts plus every critical issue and every alarm/event warning from that scan — host-log warnings go to `scan.log` only, and `info` rows (unreadable or partly-read host logs) are never sent. Each issue carries the entity name and one of: the alarm name, vCenter event message (sanitized, ≤500 chars), ESXi log line matching critical/panic/corrupt (sanitized, ≤200 chars), or the error text for a target the daemon could not connect to. Event, log, and error text can contain host names, IP addresses, and user names — treat the webhook destination as receiving operational data. No credentials from the skill's config or `.env` are included.
+- **Daemon host-log reads**: the scanner daemon reads the ESXi `hostd`, `vmkernel` and `vpxa` logs, which needs the `Global.Diagnostics` privilege — vCenter's built-in Read-Only role does not include it. Without it each log is recorded in `scan.log` as an `info` row with the reason instead of being scanned; grant it only if you want host-log scanning.
+- **Prompt Injection Protection**: All vSphere-sourced content (event messages, host logs) is truncated, stripped of control characters, and wrapped in boundary markers (`[VSPHERE_EVENT]`/`[VSPHERE_HOST_LOG]`) before output to prevent prompt injection when consumed by LLM agents.
+- **Least Privilege**: 22 of the 43 MCP write tools — every destructive one — return a no-write blast-radius preview unless called with `confirm=True`, which is refused on a blocker or an unreadable measurement; `vm_delete` also requires the preview's acknowledgement echoed back. The other 21 (create, clone, deploy, power-on, reconfigure) act on the first call. A preview is not authorization. The enforcement boundary is the RBAC of the vCenter/ESXi account in `.env`, so use a dedicated service account scoped to what the agent may change. For monitoring-only use cases, prefer the read-only [VMware-Monitor](https://github.com/vmware-skills/VMware-Monitor) skill which has zero destructive code paths. The CLI's double confirmation and `--dry-run` do not apply to MCP calls.
+- **Guest Credentials**: Guest operations run with whatever guest account is passed to them — the `username` is required (there is no default account) and over MCP the password is a tool argument the agent sees (the audit row redacts it). A read-only vCenter role does not limit what they do inside a VM. Pass a least-privilege guest account; avoid root unless the task needs it. `vm_guest_upload` reads any local file the server process can read.
+- **Policy & Audit**: Optional `deny` rules in `~/.vmware/rules.yaml` refuse matching operations before every MCP call and every CLI command that reaches vCenter (see `environment:` above); they run in-process and are a guardrail, not a substitute for RBAC. Every such call is recorded in `~/.vmware/audit.db` with credentials redacted (best-effort: an audit write failure warns and does not block).
+
+To run the agent read-only, give it a read-only vCenter/ESXi service account (RBAC) — enforced at the platform.
+
+## Supported AI Platforms
+
+| Platform | Status | Config File |
+|----------|--------|-------------|
+| Claude Code | ✅ Native Skill | `skills/vmware-knight/SKILL.md` |
+| Gemini CLI | ✅ Context file + MCP | `skills/vmware-knight/SKILL.md` |
+| OpenAI Codex CLI | ✅ Skill + AGENTS.md | `skills/vmware-knight/SKILL.md` |
+| Aider | ✅ Conventions | `skills/vmware-knight/SKILL.md` |
+| Continue CLI | ✅ Rules | `skills/vmware-knight/SKILL.md` |
+| Trae IDE | ✅ Rules | `skills/vmware-knight/SKILL.md` |
+| Kimi Code CLI | ✅ Skill | `skills/vmware-knight/SKILL.md` |
+| MCP Server | ✅ MCP Protocol | `vmware_knight/mcp_server/` |
+| Python CLI | ✅ Standalone | N/A |
+
+## MCP Server — Local Agent Compatibility
+
+The MCP server works with any MCP-compatible agent via stdio transport. Config templates in `examples/mcp-configs/`:
+
+| Agent | Local Models | Config Template |
+|-------|:----------:|-----------------|
+| Goose (Block) | ✅ Ollama, LM Studio | `goose.json` |
+| LocalCowork (Liquid AI) | ✅ Fully offline | `localcowork.json` |
+| mcp-agent (LastMile AI) | ✅ Ollama, vLLM | `mcp-agent.yaml` |
+| VS Code Copilot | — | `vscode-copilot.json` |
+| Cursor | — | `cursor.json` |
+| Continue | ✅ Ollama | `continue.yaml` |
+| Claude Code | — | `claude-code.json` |
+
+```bash
+# Example: Aider + Ollama (fully local, no cloud API)
+aider --conventions skills/vmware-knight/SKILL.md --model ollama/qwen2.5-coder:32b
+```
+
+## MCP Mode (Optional)
+
+For Claude Code / Cursor users who prefer structured tool calls, add to `~/.claude/settings.json`:
+
+```json
+{
+  "mcpServers": {
+    "vmware-knight": {
+      "command": "vmware-knight",
+      "args": ["mcp"],
+      "env": {
+        "VMWARE_KNIGHT_CONFIG": "~/.vmware-knight/config.yaml"
+      }
+    }
+  }
+}
+```
+
+> v1.5.15+ recommends the single-command form `vmware-knight mcp`. Pre-1.5.15 used
+> `uvx --from vmware-knight vmware-knight-mcp`, which still works but re-resolves from <!-- install-pin: historical -->
+> PyPI on each launch and breaks behind corporate TLS proxies. The legacy
+> `vmware-knight-mcp` entry point is also kept for backward compatibility.
+
+MCP exposes 60 tools across 10 categories. All accept optional `target` parameter.

@@ -1,0 +1,9 @@
+{
+  "name": "vmware-knight",
+  "description": "VMware vCenter/ESXi AI-powered monitoring and operations",
+  "command": "vmware-knight",
+  "args": ["mcp"],
+  "env": {
+    "VMWARE_KNIGHT_CONFIG": "~/.vmware-knight/config.yaml"
+  }
+}

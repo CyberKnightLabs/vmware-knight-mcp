@@ -1,0 +1,430 @@
+{
+  "_comment": "Capability eval scores. Regenerate with: pytest -m capability. These are tracked trends, not pass/fail gates \u2014 see _scoring.py. Entries marked stale=true were carried over from an earlier run because this run did not measure them.",
+  "scores": {
+    "entity_reachability_full": {
+      "detail": {
+        "broken_chains": [],
+        "entry_points": [
+          "list_vcenter_alarms",
+          "cluster_create",
+          "cluster_add_host",
+          "scan_datastore_images",
+          "deploy_vm_from_template",
+          "batch_deploy_from_spec",
+          "vm_guest_provision",
+          "list_dvs_portgroups",
+          "create_dvs_portgroup",
+          "list_host_vmks",
+          "vm_create_plan",
+          "vm_list_plans",
+          "cluster_health_summary",
+          "cross_vcenter_attention",
+          "vm_list_ttl",
+          "vm_create",
+          "vm_create_snapshot",
+          "vm_task_status"
+        ],
+        "reachable_on_surface": 52,
+        "reachable_only_via_description": 2,
+        "required_entity_params": 54,
+        "required_params_classified": "54/97",
+        "tool_count": 60
+      },
+      "maximum": 54,
+      "pct": 100.0,
+      "unit": "required entity params",
+      "value": 54
+    },
+    "entity_reachability_read_only": {
+      "detail": {
+        "broken_chains": [],
+        "entry_points": [
+          "list_vcenter_alarms",
+          "scan_datastore_images",
+          "vm_list_plans",
+          "cluster_health_summary",
+          "cross_vcenter_attention",
+          "vm_list_ttl",
+          "vm_task_status"
+        ],
+        "reachable_on_surface": 5,
+        "reachable_only_via_description": 1,
+        "required_entity_params": 6,
+        "required_params_classified": "6/7",
+        "tool_count": 13
+      },
+      "maximum": 6,
+      "pct": 100.0,
+      "stale": true,
+      "unit": "required entity params",
+      "value": 6
+    },
+    "entry_point_availability": {
+      "detail": {
+        "full_entry_points": 18
+      },
+      "maximum": 60,
+      "pct": 30.0,
+      "unit": "entry points",
+      "value": 18
+    },
+    "error_actionability": {
+      "detail": {
+        "composed_hint_sites": [
+          "cluster_mgmt.py:528"
+        ],
+        "dead_end_count": 26,
+        "dead_end_errors": [
+          {
+            "message": "Cannot determine datacenter for cluster '{}'",
+            "missing": [
+              "names_artifact",
+              "states_remedy"
+            ],
+            "where": "cluster_mgmt.py:253"
+          },
+          {
+            "message": "No rule named '{}' on cluster '{}'. Existing rules: {}. Names are matched exactly.",
+            "missing": [
+              "names_artifact",
+              "states_remedy"
+            ],
+            "where": "cluster_mgmt.py:366"
+          },
+          {
+            "message": "Rule name '{}' is ambiguous - {} rules share it (keys {}). Rename one in the UI first.",
+            "missing": [
+              "names_artifact",
+              "states_remedy"
+            ],
+            "where": "cluster_mgmt.py:372"
+          },
+          {
+            "message": "A rule named '{}' already exists on '{}'.",
+            "missing": [
+              "names_artifact",
+              "states_remedy"
+            ],
+            "where": "cluster_mgmt.py:477"
+          },
+          {
+            "message": "A VM-VM rule needs at least 2 distinct VMs (got {}).",
+            "missing": [
+              "names_artifact",
+              "states_remedy"
+            ],
+            "where": "cluster_mgmt.py:483"
+          },
+          {
+            "message": "REFUSED: '{}' is a vmHost rule, not VM-VM. VM-Host and other rule types can carry licensing/complian",
+            "missing": [
+              "names_artifact",
+              "states_remedy"
+            ],
+            "where": "cluster_mgmt.py:528"
+          },
+          {
+            "message": "Delete task completed but '{}' is still present - inspect the cluster in the UI.",
+            "missing": [
+              "names_artifact",
+              "states_remedy"
+            ],
+            "where": "cluster_mgmt.py:548"
+          },
+          {
+            "message": "VM '{}' not found.",
+            "missing": [
+              "names_artifact",
+              "states_remedy"
+            ],
+            "where": "cluster_mgmt.py:442"
+          },
+          {
+            "message": "Distributed portgroup '{}' not found",
+            "missing": [
+              "names_artifact",
+              "states_remedy"
+            ],
+            "where": "host_network_mgmt.py:118"
+          },
+          {
+            "message": "Host '{}' not found",
+            "missing": [
+              "names_artifact",
+              "states_remedy"
+            ],
+            "where": "host_network_mgmt.py:73"
+          },
+          {
+            "message": "'{}' not found on '{}'. Present: {}",
+            "missing": [
+              "names_artifact",
+              "states_remedy"
+            ],
+            "where": "host_network_mgmt.py:434"
+          },
+          {
+            "message": "Unknown service '{}'. Valid services: {}",
+            "missing": [
+              "names_artifact",
+              "states_remedy"
+            ],
+            "where": "host_network_mgmt.py:545"
+          },
+          {
+            "message": "'{}' not found on '{}'. Present: {}",
+            "missing": [
+              "names_artifact",
+              "states_remedy"
+            ],
+            "where": "host_network_mgmt.py:552"
+          },
+          {
+            "message": "SOAP fault: {}",
+            "missing": [
+              "names_artifact",
+              "states_remedy"
+            ],
+            "where": "host_network_mgmt.py:674"
+          },
+          {
+            "message": "SOAP HTTP {}: {}",
+            "missing": [
+              "names_artifact",
+              "states_remedy"
+            ],
+            "where": "host_network_mgmt.py:676"
+          }
+        ],
+        "per_dimension_pct": {
+          "names_artifact": 51.1,
+          "names_input": 97.8,
+          "states_remedy": 71.1
+        },
+        "raise_sites": 90
+      },
+      "maximum": 270,
+      "pct": 73.3,
+      "unit": "points",
+      "value": 198
+    },
+    "manifest_context_headroom": {
+      "detail": {
+        "heaviest_tools": {
+          "create_dvs_portgroup": 418,
+          "deploy_linked_clone": 422,
+          "deploy_vm_from_ova": 402,
+          "list_host_vmks": 422,
+          "vmk_ping": 461
+        },
+        "manifest_tokens": 15778,
+        "mean_tokens_per_tool": 263.0,
+        "reference_context": 16384,
+        "tool_count": 60
+      },
+      "maximum": 16384,
+      "pct": 3.7,
+      "unit": "tokens",
+      "value": 606
+    },
+    "parameter_documentation_coverage": {
+      "detail": {
+        "undocumented_by_tool": {
+          "vm_create_snapshot": [
+            "description",
+            "snapshot_name"
+          ]
+        },
+        "value_set_candidates": {
+          "cluster_configure.drs_behavior": [
+            "fullyAutomated",
+            "manual",
+            "partiallyAutomated"
+          ]
+        }
+      },
+      "maximum": 246,
+      "pct": 99.2,
+      "unit": "parameters",
+      "value": 244
+    },
+    "per_tool_token_discipline": {
+      "detail": {
+        "ceiling": 350,
+        "over_ceiling": {
+          "add_host_vmk": 394,
+          "batch_clone_vms": 364,
+          "batch_linked_clone_vms": 379,
+          "create_drs_rule": 394,
+          "create_dvs_portgroup": 418,
+          "deploy_linked_clone": 422,
+          "deploy_vm_from_ova": 402,
+          "deploy_vm_from_template": 380,
+          "list_host_vmks": 422,
+          "remove_host_vmk": 372,
+          "set_vmk_service": 400,
+          "vm_create": 402,
+          "vm_guest_download": 351,
+          "vm_guest_exec": 355,
+          "vm_guest_provision": 359,
+          "vmk_ping": 461
+        }
+      },
+      "maximum": 60,
+      "pct": 73.3,
+      "unit": "tools",
+      "value": 44
+    },
+    "read_only_manifest_saving": {
+      "detail": {
+        "full_manifest_tokens": 10891,
+        "full_tool_count": 49,
+        "gated_manifest_tokens": 2420,
+        "gated_tool_count": 13,
+        "withheld_tools": [
+          "acknowledge_vcenter_alarm",
+          "attach_iso_to_vm",
+          "batch_clone_vms",
+          "batch_deploy_from_spec",
+          "batch_linked_clone_vms",
+          "cluster_add_host",
+          "cluster_configure",
+          "cluster_create",
+          "cluster_delete",
+          "cluster_remove_host",
+          "convert_vm_to_template",
+          "deploy_linked_clone",
+          "deploy_vm_from_ova",
+          "deploy_vm_from_template",
+          "reset_vcenter_alarm",
+          "vm_apply_plan",
+          "vm_cancel_ttl",
+          "vm_clean_slate",
+          "vm_clone",
+          "vm_create",
+          "vm_create_plan",
+          "vm_create_snapshot",
+          "vm_delete",
+          "vm_delete_snapshot",
+          "vm_guest_download",
+          "vm_guest_exec",
+          "vm_guest_exec_output",
+          "vm_guest_provision",
+          "vm_guest_upload",
+          "vm_migrate",
+          "vm_power_off",
+          "vm_power_on",
+          "vm_reconfigure",
+          "vm_revert_snapshot",
+          "vm_rollback_plan",
+          "vm_set_ttl"
+        ]
+      },
+      "maximum": 10891,
+      "pct": 77.8,
+      "stale": true,
+      "unit": "tokens",
+      "value": 8471
+    },
+    "read_write_marker_coverage": {
+      "detail": {
+        "unmarked": []
+      },
+      "maximum": 60,
+      "pct": 100.0,
+      "unit": "points",
+      "value": 60
+    },
+    "remedy_survives_truncation": {
+      "detail": {
+        "budget_chars": 300,
+        "over_budget": [],
+        "remedy_after_interpolation": [
+          "_common.py:212",
+          "_common.py:214",
+          "_common.py:219",
+          "_common.py:201",
+          "_common.py:206",
+          "config.py:216",
+          "config.py:250",
+          "config.py:174",
+          "config.py:239",
+          "connection.py:153"
+        ]
+      },
+      "maximum": 61,
+      "pct": 100.0,
+      "stale": true,
+      "unit": "messages",
+      "value": 61
+    },
+    "teaching_error_rate": {
+      "detail": {},
+      "maximum": 90,
+      "pct": 51.1,
+      "unit": "messages",
+      "value": 46
+    },
+    "tool_description_quality": {
+      "detail": {
+        "per_dimension_pct": {
+          "args": 98.3,
+          "gotcha": 95.0,
+          "marker": 100.0,
+          "next_hop": 95.0,
+          "what": 95.0,
+          "when": 91.7
+        },
+        "tools_graded": 60,
+        "weakest_tools": {
+          "add_host_vmk": [
+            "when"
+          ],
+          "create_drs_rule": [
+            "when"
+          ],
+          "datastore_investigation_bundle": [
+            "what"
+          ],
+          "delete_drs_rule": [
+            "next_hop",
+            "when"
+          ],
+          "host_investigation_bundle": [
+            "what"
+          ],
+          "list_drs_rules": [
+            "gotcha",
+            "when"
+          ],
+          "list_dvs_portgroups": [
+            "gotcha"
+          ],
+          "vmk_ping": [
+            "gotcha",
+            "next_hop"
+          ]
+        }
+      },
+      "maximum": 360,
+      "pct": 95.8,
+      "unit": "points",
+      "value": 345
+    },
+    "tool_failure_payload_quality": {
+      "detail": {
+        "bare_string_error_lines": [
+          286
+        ],
+        "carries_hint": 2,
+        "dict_shaped": 2,
+        "error_return_sites": 3,
+        "hint_names_artifact": 3
+      },
+      "maximum": 9,
+      "pct": 77.8,
+      "unit": "checks",
+      "value": 7
+    }
+  }
+}

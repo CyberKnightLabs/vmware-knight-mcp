@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "vmware-knight": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": [
+        "--from",
+        "vmware-knight==1.12.0",
+        "vmware-knight-mcp"
+      ]
+    }
+  }
+}

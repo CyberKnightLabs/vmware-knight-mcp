@@ -1,0 +1,12 @@
+# Continue configuration
+# Add to your Continue MCP settings
+
+mcpServers:
+  - name: vmware-knight
+    command: python
+    args:
+      - -m
+      - vmware_knight.mcp_server
+    cwd: /path/to/VMware Knight
+    env:
+      VMWARE_KNIGHT_CONFIG: ~/.vmware-knight/config.yaml

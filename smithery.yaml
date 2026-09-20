@@ -1,0 +1,15 @@
+startCommand:
+  type: stdio
+  configSchema:
+    type: object
+    properties:
+      config_path:
+        type: string
+        description: "Path to vmware-knight config.yaml (default: ~/.vmware-knight/config.yaml)"
+    required: []
+  commandFunction: |
+    (config) => ({
+      command: "vmware-knight",
+      args: ["mcp"],
+      env: config.config_path ? { VMWARE_KNIGHT_CONFIG: config.config_path } : {}
+    })

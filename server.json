@@ -1,0 +1,39 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.cyberknightlabs/vmware-knight",
+  "title": "VMware Knight",
+  "description": "AI-powered VMware vCenter/ESXi VM lifecycle and deployment with 60 MCP tools.",
+  "repository": {
+    "url": "https://github.com/CyberKnightLabs/vmware-knight-mcp",
+    "source": "github"
+  },
+  "version": "1.12.0",
+  "packages": [
+    {
+      "registryType": "pypi",
+      "identifier": "vmware-knight",
+      "version": "1.12.0",
+      "runtimeHint": "uvx",
+      "packageArguments": [
+        {
+          "type": "positional",
+          "valueHint": "subcommand",
+          "value": "mcp",
+          "description": "Starts the stdio MCP server. Without it the console script runs the human CLI and exits."
+        }
+      ],
+      "environmentVariables": [
+        {
+          "name": "VMWARE_KNIGHT_CONFIG",
+          "description": "Path to the config file. Defaults to ~/.vmware-knight/config.yaml.",
+          "format": "filepath",
+          "isRequired": false,
+          "isSecret": false
+        }
+      ],
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ]
+}
