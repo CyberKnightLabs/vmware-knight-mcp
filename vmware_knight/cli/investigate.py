@@ -15,6 +15,7 @@ from typing import Annotated
 
 import typer
 
+from vmware_knight.branding import normalize_branding
 from vmware_knight.cli._common import (
     ConfigOption,
     TargetOption,
@@ -58,7 +59,7 @@ def investigate_vm_cmd(
 
     si, cfg = _get_connection(target, config)
     tgt = _tgt(target, cfg)
-    bundle = get_vm_investigation_bundle(si, vm_name, hours=hours)
+    bundle = normalize_branding(get_vm_investigation_bundle(si, vm_name, hours=hours))
     _audit.log_query(
         target=tgt, resource=vm_name, query_type="vm_investigation_bundle", skill="knight"
     )
@@ -85,7 +86,7 @@ def investigate_host_cmd(
 
     si, cfg = _get_connection(target, config)
     tgt = _tgt(target, cfg)
-    bundle = get_host_investigation_bundle(si, host_name, hours=hours)
+    bundle = normalize_branding(get_host_investigation_bundle(si, host_name, hours=hours))
     _audit.log_query(
         target=tgt, resource=host_name, query_type="host_investigation_bundle", skill="knight"
     )
@@ -112,7 +113,9 @@ def investigate_datastore_cmd(
 
     si, cfg = _get_connection(target, config)
     tgt = _tgt(target, cfg)
-    bundle = get_datastore_investigation_bundle(si, datastore_name, hours=hours)
+    bundle = normalize_branding(
+        get_datastore_investigation_bundle(si, datastore_name, hours=hours)
+    )
     _audit.log_query(
         target=tgt,
         resource=datastore_name,
@@ -144,8 +147,10 @@ def attention_cmd(
     from vmware_monitor.ops.attention import get_cross_vcenter_attention
 
     sessions, unreachable = _get_all_connections(config)
-    data = get_cross_vcenter_attention(
-        sessions, unreachable=unreachable, cluster_filter=cluster, top_n=top
+    data = normalize_branding(
+        get_cross_vcenter_attention(
+            sessions, unreachable=unreachable, cluster_filter=cluster, top_n=top
+        )
     )
     _audit.log_query(
         target="*", resource="all-vcenters", query_type="cross_vcenter_attention", skill="knight"

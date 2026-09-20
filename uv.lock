@@ -1227,7 +1227,7 @@ requires-dist = [
     { name = "pyvmomi", specifier = ">=8.0.3.0,<10.0" },
     { name = "rich", specifier = ">=13.0,<16.0" },
     { name = "typer", specifier = ">=0.12,<1.0" },
-    { name = "vmware-monitor", editable = "../VMware-Monitor" },
+    { name = "vmware-monitor", specifier = ">=1.13.0,<2.0" },
     { name = "vmware-policy", specifier = ">=1.17.0,<2.0" },
 ]
 
@@ -1241,7 +1241,7 @@ dev = [
 [[package]]
 name = "vmware-monitor"
 version = "1.16.0"
-source = { editable = "../VMware-Monitor" }
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "apscheduler" },
     { name = "httpx" },
@@ -1253,25 +1253,9 @@ dependencies = [
     { name = "typer" },
     { name = "vmware-policy" },
 ]
-
-[package.metadata]
-requires-dist = [
-    { name = "apscheduler", specifier = ">=3.10,<4.0" },
-    { name = "httpx", specifier = ">=0.27,<1.0" },
-    { name = "mcp", extras = ["cli"], specifier = ">=1.10,<2.0" },
-    { name = "pyaml", specifier = ">=24.0,<27.0" },
-    { name = "python-dotenv", specifier = ">=1.0,<2.0" },
-    { name = "pyvmomi", specifier = ">=8.0.3.0,<10.0" },
-    { name = "rich", specifier = ">=13.0,<16.0" },
-    { name = "typer", specifier = ">=0.12,<1.0" },
-    { name = "vmware-policy", specifier = ">=1.15.0,<2.0" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "pytest", specifier = ">=8.0,<10.0" },
-    { name = "pytest-cov", specifier = ">=5.0,<8.0" },
-    { name = "ruff", specifier = ">=0.5,<1.0" },
+sdist = { url = "https://files.pythonhosted.org/packages/42/11/473cfa4406c432e18633ba273da2ecc2615f31e36754733c54759a7f6141/vmware_monitor-1.16.0.tar.gz", hash = "sha256:527f91b167eec152c9af8d2297dccfb7f423da43ffaea2db1bc6ffaf43d522be", size = 554612, upload-time = "2026-09-20T14:49:00.384Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/de/c9/c5cbef9e3187c9e9721d0887a1a13cfb1465b527e7c844a83998070a88e5/vmware_monitor-1.16.0-py3-none-any.whl", hash = "sha256:2e41568d1d0943d1f659a7bc35d2277b4f1b455e85865d7b70c12ee599afeb55", size = 205263, upload-time = "2026-09-20T14:48:57.055Z" },
 ]
 
 [[package]]

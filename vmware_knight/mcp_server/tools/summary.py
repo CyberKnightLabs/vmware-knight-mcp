@@ -15,6 +15,7 @@ from vmware_monitor.ops.investigate_host import get_host_investigation_bundle
 from vmware_monitor.ops.investigate_vm import get_vm_investigation_bundle
 from vmware_policy import vmware_tool
 
+from vmware_knight.branding import normalize_branding
 from vmware_knight.mcp_server._shared import _ensure_conn_mgr, _get_connection, mcp, tool_errors
 
 
@@ -57,8 +58,10 @@ def cluster_health_summary(
         top_n: Cap the top_issues focus list (default 10; 0 hides it).
     """
     si = _get_connection(target)
-    return get_cluster_health_summary(
-        si, cluster_filter=cluster_filter, include_vms=include_vms, top_n=top_n
+    return normalize_branding(
+        get_cluster_health_summary(
+            si, cluster_filter=cluster_filter, include_vms=include_vms, top_n=top_n
+        )
     )
 
 
@@ -94,7 +97,7 @@ def vm_investigation_bundle(
         hours: Event-timeline look-back window in hours (default 24).
     """
     si = _get_connection(target)
-    return get_vm_investigation_bundle(si, vm_name, hours=hours)
+    return normalize_branding(get_vm_investigation_bundle(si, vm_name, hours=hours))
 
 
 @mcp.tool(
@@ -127,7 +130,7 @@ def host_investigation_bundle(
         hours: Event-timeline look-back window in hours (default 24).
     """
     si = _get_connection(target)
-    return get_host_investigation_bundle(si, host_name, hours=hours)
+    return normalize_branding(get_host_investigation_bundle(si, host_name, hours=hours))
 
 
 @mcp.tool(
@@ -160,7 +163,9 @@ def datastore_investigation_bundle(
         hours: Event-timeline look-back window in hours (default 24).
     """
     si = _get_connection(target)
-    return get_datastore_investigation_bundle(si, datastore_name, hours=hours)
+    return normalize_branding(
+        get_datastore_investigation_bundle(si, datastore_name, hours=hours)
+    )
 
 
 @mcp.tool(
@@ -192,6 +197,11 @@ def cross_vcenter_attention(
         top_n: Cap the merged top_issues focus list (default 10).
     """
     sessions, unreachable = _ensure_conn_mgr().connect_all()
-    return get_cross_vcenter_attention(
-        sessions, unreachable=unreachable, cluster_filter=cluster_filter, top_n=top_n
+    return normalize_branding(
+        get_cross_vcenter_attention(
+            sessions,
+            unreachable=unreachable,
+            cluster_filter=cluster_filter,
+            top_n=top_n,
+        )
     )

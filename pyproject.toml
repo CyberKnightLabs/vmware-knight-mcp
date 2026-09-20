@@ -48,13 +48,6 @@ vmware-knight-mcp = "vmware_knight.mcp_server.server:main"
 [tool.hatch.build.targets.wheel]
 packages = ["vmware_knight"]
 
-# Dev-only: resolve vmware-monitor from the local workspace so the delegated
-# cluster-health summary uses the in-progress version. uv-specific and stripped
-# from the published wheel — the real requirement stays `vmware-monitor>=1.8.0`
-# in [project.dependencies]. Released together at the same family version.
-[tool.uv.sources]
-vmware-monitor = { path = "../VMware-Monitor", editable = true }
-
 [tool.ruff]
 line-length = 100
 target-version = "py310"
