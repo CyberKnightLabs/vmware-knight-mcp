@@ -637,7 +637,9 @@ For normal operation, use the wizard instead of manually editing this file.
 
 ## Claude Desktop
 
-The wizard can configure Claude Desktop automatically:
+VMware Knight can configure Claude Desktop automatically through the management wizard.
+
+Start the wizard from any terminal after VMware Knight is installed:
 
 ```bash
 vmware-knight wizard
@@ -650,26 +652,58 @@ Then select:
 1. Claude Desktop
 ```
 
-A typical Claude Desktop MCP entry looks like:
+When prompted for the VMware Knight executable path, the default is typically:
+
+```text
+~/.local/bin/vmware-knight
+```
+
+Press **Enter** to accept the default path, then confirm the installation with **Y**.
+
+VMware Knight resolves the real executable path automatically and writes the MCP configuration to:
+
+```text
+~/Library/Application Support/Claude/claude_desktop_config.json
+```
+
+A typical generated entry looks like:
 
 ```json
 {
   "mcpServers": {
     "vmware-knight": {
-      "command": "/Users/yourname/.local/bin/vmware-knight",
+      "command": "/Users/USERNAME/.local/share/uv/tools/vmware-knight/bin/vmware-knight",
       "args": ["mcp"]
     }
   }
 }
 ```
 
-Restart Claude Desktop after updating the MCP configuration.
+After installation, fully quit Claude Desktop and reopen it so the new MCP server is loaded. Start a fresh chat before testing.
 
-Example prompt:
+A simple validation prompt is:
 
 ```text
-Using VMware Knight, list the VMs on lab-vcenter.
+Using VMware Knight, list the configured VMware targets.
 ```
+
+For an end-to-end live MCP test, use a request such as:
+
+```text
+Use the VMware Knight MCP tool cluster_health_summary against target lab-vcenter with top_n=2.
+Do not inspect local files. Return the two live top issues from vCenter.
+```
+
+If Claude returns live vCenter data through VMware Knight, the MCP integration is working correctly.
+
+If `vmware-knight` is not found before starting the wizard, verify the installation with:
+
+```bash
+which vmware-knight
+vmware-knight --help
+```
+
+> `vmware-knight-mcp` is the stdio MCP server entry point used by MCP clients. You normally do not need to run it manually.
 
 ---
 
