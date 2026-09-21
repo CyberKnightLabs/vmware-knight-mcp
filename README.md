@@ -498,6 +498,8 @@ Using VMware Knight, show me all VMs on lab-vcenter.
 
 VMware Knight can install its MCP configuration directly into Codex.
 
+> **Windows users:** use the Windows installer instead. See [docs/windows-codex.md](docs/windows-codex.md).
+
 First locate the installed VMware Knight executable:
 
 ```bash
