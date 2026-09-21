@@ -23,15 +23,9 @@ _AGENT_TEMPLATES = {
 
 _TEMPLATES_DIR = Path(__file__).parent.parent.parent / "examples" / "mcp-configs"
 
-# Default install destinations for each agent
-_AGENT_INSTALL_PATHS: dict[str, Path] = {
-    "claude": Path.home() / "Library" / "Application Support" / "Claude" / "claude_desktop_config.json",
-    "codex": Path.home() / ".codex" / "config.toml",
-}
-
 _IS_WINDOWS = os.name == "nt"
 
-# Codex starts MCP servers with a minimal environment. On Windows, Python needs
+# MCP clients start servers with a minimal environment. On Windows, Python needs
 # these to find the home folder (~/.vmware-knight) and to run at all.
 _WINDOWS_ENV_VARS = (
     "USERPROFILE",
@@ -43,6 +37,31 @@ _WINDOWS_ENV_VARS = (
     "TEMP",
     "TMP",
 )
+
+
+def _claude_config_path() -> Path:
+    """Claude Desktop config file for this platform."""
+    if not _IS_WINDOWS:
+        return (
+            Path.home() / "Library" / "Application Support" / "Claude"
+            / "claude_desktop_config.json"
+        )
+    # Microsoft Store (MSIX) installs keep AppData in a per-package folder.
+    local = os.environ.get("LOCALAPPDATA")
+    if local:
+        for package in sorted(Path(local, "Packages").glob("Claude_*")):
+            roaming = package / "LocalCache" / "Roaming" / "Claude"
+            if roaming.is_dir():
+                return roaming / "claude_desktop_config.json"
+    appdata = os.environ.get("APPDATA") or str(Path.home() / "AppData" / "Roaming")
+    return Path(appdata) / "Claude" / "claude_desktop_config.json"
+
+
+# Default install destinations for each agent
+_AGENT_INSTALL_PATHS: dict[str, Path] = {
+    "claude": _claude_config_path(),
+    "codex": Path.home() / ".codex" / "config.toml",
+}
 
 
 def default_executable() -> str:
@@ -61,6 +80,23 @@ def _resolve_executable(install_path: str | None) -> str:
     return str(path)
 
 
+def _windows_env() -> dict[str, str]:
+    """Env vars to pass to the MCP server on Windows."""
+    env = {k: os.environ[k] for k in _WINDOWS_ENV_VARS if os.environ.get(k)}
+    env.setdefault("USERPROFILE", str(Path.home()))
+    env["PYTHONUTF8"] = "1"
+    env["PYTHONIOENCODING"] = "utf-8"
+    return env
+
+
+def _claude_entry(executable: str) -> dict:
+    """Claude Desktop server entry; on Windows it also passes the home-folder env vars."""
+    entry: dict = {"command": executable, "args": ["mcp"]}
+    if _IS_WINDOWS:
+        entry["env"] = _windows_env()
+    return entry
+
+
 def _codex_block(executable: str) -> str:
     """Codex TOML block; on Windows it also passes the home-folder env vars."""
     lines = [
@@ -71,12 +107,8 @@ def _codex_block(executable: str) -> str:
         "startup_timeout_sec = 120",
     ]
     if _IS_WINDOWS:
-        env = {k: os.environ[k] for k in _WINDOWS_ENV_VARS if os.environ.get(k)}
-        env.setdefault("USERPROFILE", str(Path.home()))
-        env["PYTHONUTF8"] = "1"
-        env["PYTHONIOENCODING"] = "utf-8"
         lines += ["", "[mcp_servers.vmware-knight.env]"]
-        lines += [f"{k} = {json.dumps(v)}" for k, v in env.items()]
+        lines += [f"{k} = {json.dumps(v)}" for k, v in _windows_env().items()]
     return "\n".join(lines) + "\n"
 
 
@@ -116,14 +148,7 @@ def mcp_config_generate(
 
     if agent_lower == "claude":
         content = json.dumps(
-            {
-                "mcpServers": {
-                    "vmware-knight": {
-                        "command": executable,
-                        "args": ["mcp"],
-                    }
-                }
-            },
+            {"mcpServers": {"vmware-knight": _claude_entry(executable)}},
             indent=2,
         ) + "\n"
 
@@ -202,17 +227,14 @@ def mcp_config_install(
     if agent_lower == "claude":
         if dest.exists():
             try:
-                existing = json.loads(dest.read_text(encoding="utf-8"))
+                existing = json.loads(dest.read_text(encoding="utf-8-sig"))
             except json.JSONDecodeError as exc:
                 console.print(f"[red]Claude config is invalid JSON: {exc}[/]")
                 raise typer.Exit(1) from exc
         else:
             existing = {}
 
-        existing.setdefault("mcpServers", {})["vmware-knight"] = {
-            "command": executable,
-            "args": ["mcp"],
-        }
+        existing.setdefault("mcpServers", {})["vmware-knight"] = _claude_entry(executable)
 
         dest.write_text(
             json.dumps(existing, indent=2) + "\n",
