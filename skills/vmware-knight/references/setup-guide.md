@@ -6,13 +6,13 @@ All install methods fetch from the same source: [github.com/vmware-skills/VMware
 
 ```bash
 # Via PyPI (recommended for version pinning)
-uv tool install vmware-knight==1.12.0
+uv tool install vmware-knight==1.12.1
 
 # Via Skills.sh (fetches from GitHub)
-npx skills add vmware-skills/VMware Knight#v1.12.0
+npx skills add vmware-skills/VMware Knight#v1.12.1
 
 # Via ClawHub (fetches from ClawHub registry snapshot of GitHub)
-clawhub install @CyberKnightLabs/vmware-knight --version 1.12.0
+clawhub install @CyberKnightLabs/vmware-knight --version 1.12.1
 ```
 
 ### Claude Code
@@ -35,7 +35,7 @@ claude mcp add vmware-knight -- vmware-knight mcp
 
 ```bash
 # 1. Install from PyPI (source: github.com/vmware-skills/VMware Knight)
-uv tool install vmware-knight==1.12.0
+uv tool install vmware-knight==1.12.1
 
 # 2. Verify installation source
 vmware-knight --version  # confirms installed version
@@ -73,7 +73,7 @@ The `vmware-knight` package installs a Python CLI binary and its dependencies (p
 ## Development Install
 
 ```bash
-git clone --branch v1.12.0 https://github.com/vmware-skills/VMware Knight.git
+git clone --branch v1.12.1 https://github.com/vmware-skills/VMware Knight.git
 cd VMware Knight
 uv venv && source .venv/bin/activate
 # --no-sources: pyproject's [tool.uv.sources] points vmware-monitor at a sibling

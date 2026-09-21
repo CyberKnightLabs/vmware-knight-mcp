@@ -62,7 +62,7 @@ Read before connecting an agent. Per-tool inventory: `references/capabilities.md
 ## Quick Install
 
 ```bash
-uv tool install vmware-knight==1.12.0
+uv tool install vmware-knight==1.12.1
 vmware-knight doctor
 vmware-knight hub status   # see which family members are installed
 ```
@@ -298,7 +298,7 @@ Run `vmware-knight plan list` to see failed plan status. Ask user if they want t
 ## Setup
 
 ```bash
-uv tool install vmware-knight==1.12.0
+uv tool install vmware-knight==1.12.1
 mkdir -p ~/.vmware-knight
 vmware-knight init  # generates config.yaml and .env templates
 chmod 600 ~/.vmware-knight/.env
