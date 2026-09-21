@@ -357,7 +357,7 @@ def _test_connections() -> None:
 def _configure_mcp_client() -> None:
     """Configure VMware Knight for Claude Desktop or Codex."""
 
-    from vmware_knight.cli.mcp_config import mcp_config_install
+    from vmware_knight.cli.mcp_config import default_executable, mcp_config_install
 
     console.print("\n[bold]MCP Clients[/]")
     console.print("1. Claude Desktop")
@@ -378,12 +378,7 @@ def _configure_mcp_client() -> None:
 
     executable = typer.prompt(
         "VMware Knight executable path",
-        default=str(
-            __import__("pathlib").Path.home()
-            / ".local"
-            / "bin"
-            / "vmware-knight"
-        ),
+        default=default_executable(),
     )
 
     if not typer.confirm(

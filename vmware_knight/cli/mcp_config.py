@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 from typing import Annotated
 
@@ -27,6 +28,56 @@ _AGENT_INSTALL_PATHS: dict[str, Path] = {
     "claude": Path.home() / "Library" / "Application Support" / "Claude" / "claude_desktop_config.json",
     "codex": Path.home() / ".codex" / "config.toml",
 }
+
+_IS_WINDOWS = os.name == "nt"
+
+# Codex starts MCP servers with a minimal environment. On Windows, Python needs
+# these to find the home folder (~/.vmware-knight) and to run at all.
+_WINDOWS_ENV_VARS = (
+    "USERPROFILE",
+    "HOMEDRIVE",
+    "HOMEPATH",
+    "APPDATA",
+    "LOCALAPPDATA",
+    "SYSTEMROOT",
+    "TEMP",
+    "TMP",
+)
+
+
+def default_executable() -> str:
+    """Default VMware Knight executable path for this platform."""
+    name = "vmware-knight.exe" if _IS_WINDOWS else "vmware-knight"
+    return str(Path.home() / ".local" / "bin" / name)
+
+
+def _resolve_executable(install_path: str | None) -> str:
+    """Resolve the executable path, adding .exe on Windows when it is missing."""
+    if not install_path:
+        return default_executable()
+    path = Path(install_path).expanduser().resolve()
+    if _IS_WINDOWS and not path.suffix:
+        path = path.with_name(path.name + ".exe")
+    return str(path)
+
+
+def _codex_block(executable: str) -> str:
+    """Codex TOML block; on Windows it also passes the home-folder env vars."""
+    lines = [
+        "[mcp_servers.vmware-knight]",
+        f"command = {json.dumps(executable)}",
+        'args = ["mcp"]',
+        "enabled = true",
+        "startup_timeout_sec = 120",
+    ]
+    if _IS_WINDOWS:
+        env = {k: os.environ[k] for k in _WINDOWS_ENV_VARS if os.environ.get(k)}
+        env.setdefault("USERPROFILE", str(Path.home()))
+        env["PYTHONUTF8"] = "1"
+        env["PYTHONIOENCODING"] = "utf-8"
+        lines += ["", "[mcp_servers.vmware-knight.env]"]
+        lines += [f"{k} = {json.dumps(v)}" for k, v in env.items()]
+    return "\n".join(lines) + "\n"
 
 
 
@@ -61,11 +112,7 @@ def mcp_config_generate(
         )
         raise typer.Exit(1)
 
-    executable = (
-        str(Path(install_path).expanduser().resolve())
-        if install_path
-        else str(Path.home() / ".local" / "bin" / "vmware-knight")
-    )
+    executable = _resolve_executable(install_path)
 
     if agent_lower == "claude":
         content = json.dumps(
@@ -81,13 +128,7 @@ def mcp_config_generate(
         ) + "\n"
 
     else:
-        content = (
-            "[mcp_servers.vmware-knight]\n"
-            f'command = {json.dumps(executable)}\n'
-            'args = ["mcp"]\n'
-            "enabled = true\n"
-            "startup_timeout_sec = 120\n"
-        )
+        content = _codex_block(executable)
 
     if output:
         output.parent.mkdir(parents=True, exist_ok=True)
@@ -143,11 +184,7 @@ def mcp_config_install(
         )
         raise typer.Exit(1)
 
-    executable = (
-        str(Path(install_path).expanduser().resolve())
-        if install_path
-        else str(Path.home() / ".local" / "bin" / "vmware-knight")
-    )
+    executable = _resolve_executable(install_path)
 
     dest = _AGENT_INSTALL_PATHS[agent_lower]
 
@@ -187,13 +224,7 @@ def mcp_config_install(
         )
 
     else:
-        block = (
-            "[mcp_servers.vmware-knight]\n"
-            f'command = {json.dumps(executable)}\n'
-            'args = ["mcp"]\n'
-            "enabled = true\n"
-            "startup_timeout_sec = 120\n"
-        )
+        block = _codex_block(executable)
 
         existing = dest.read_text(encoding="utf-8") if dest.exists() else ""
 
@@ -207,7 +238,7 @@ def mcp_config_install(
             for line in lines:
                 stripped = line.strip()
 
-                if stripped == header:
+                if stripped == header or stripped.startswith("[mcp_servers.vmware-knight."):
                     skipping = True
                     continue
 
