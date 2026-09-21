@@ -83,7 +83,7 @@ def mcp_config_generate(
     else:
         content = (
             "[mcp_servers.vmware-knight]\n"
-            f'command = "{executable}"\n'
+            f'command = {json.dumps(executable)}\n'
             'args = ["mcp"]\n'
             "enabled = true\n"
             "startup_timeout_sec = 120\n"
@@ -189,7 +189,7 @@ def mcp_config_install(
     else:
         block = (
             "[mcp_servers.vmware-knight]\n"
-            f'command = "{executable}"\n'
+            f'command = {json.dumps(executable)}\n'
             'args = ["mcp"]\n'
             "enabled = true\n"
             "startup_timeout_sec = 120\n"
