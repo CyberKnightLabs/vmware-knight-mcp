@@ -9,7 +9,7 @@ Both write the same config. macOS and Linux use the wizard as usual.
 
 ## Install (2 steps)
 
-1. Install VMware Knight and add your targets. For the full Windows install (uv, Git, PATH), see [Option C — Windows](../README.md#option-c--windows) in the README.
+1. Install VMware Knight by following the Windows user guide in the README, [Option C — Windows](../README.md#option-c--windows). Its PATH commands for `uv` and Git (Steps 3 and 6) are required. Then add your targets:
 
    ```powershell
    uv tool install git+https://github.com/CyberKnightLabs/vmware-knight-mcp.git
