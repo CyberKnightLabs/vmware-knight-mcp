@@ -371,6 +371,85 @@ def find_host_by_name(si: ServiceInstance, host_name: str) -> vim.HostSystem | N
     return _find_by_name(si, [vim.HostSystem], host_name)
 
 
+class HostNameNotFoundError(InventoryError):
+    """Raised when no host on the target matches the requested name."""
+
+
+_MAX_LISTED_HOSTS = 20
+
+
+def _host_ips(vnics: object) -> set[str]:
+    """IPv4/IPv6 addresses of a host's VMkernel adapters."""
+    ips: set[str] = set()
+    for vnic in vnics or []:
+        ip = getattr(getattr(vnic, "spec", None), "ip", None)
+        if ip is None:
+            continue
+        if getattr(ip, "ipAddress", None):
+            ips.add(ip.ipAddress.lower())
+        for v6 in getattr(getattr(ip, "ipV6Config", None), "ipV6Address", None) or []:
+            if getattr(v6, "ipAddress", None):
+                ips.add(v6.ipAddress.lower())
+    return ips
+
+
+def resolve_host_name(
+    si: ServiceInstance, requested: str, aliases: tuple[str, ...] = ()
+) -> str:
+    """Return the inventory name of the host the caller means.
+
+    Tools that take a host name need its exact inventory name, which users rarely
+    know: vCenter may register a host by IP or FQDN, and a standalone ESXi host
+    reports its own configured hostname. This accepts, in order:
+
+    1. the exact inventory name;
+    2. the name in any case, or its short form (``esx01`` for ``esx01.lab.local``);
+    3. a VMkernel IP address of the host (for example the management IP);
+    4. when the target holds exactly one host (a standalone ESXi target), any of
+       ``aliases`` — the target's name, tag or configured address.
+
+    Raises:
+        HostNameNotFoundError: nothing matched, or a step matched several hosts.
+            The message lists the host names that do exist.
+    """
+    hosts = [
+        (p.get("name") or "", p.get("config.network.vnic"))
+        for _obj, p in _collect(si, [vim.HostSystem], ["name", "config.network.vnic"])
+    ]
+    names = [name for name, _ in hosts]
+    key = requested.strip()
+    low = key.lower()
+
+    if key in names:
+        return key
+
+    steps = (
+        [n for n in names if n.lower() == low or n.lower().split(".")[0] == low],
+        [n for n, vnics in hosts if low in _host_ips(vnics)],
+    )
+    for matches in steps:
+        if len(matches) == 1:
+            return matches[0]
+        if len(matches) > 1:
+            raise HostNameNotFoundError(
+                f"'{sanitize(requested, 200)}' matches several hosts: "
+                f"{', '.join(sorted(sanitize(m, 200) for m in matches))}. "
+                "Pass one of these exact names."
+            )
+
+    if len(names) == 1 and low in {a.strip().lower() for a in aliases if a}:
+        return names[0]
+
+    listed = sorted(sanitize(n, 200) for n in names)
+    more = len(listed) - _MAX_LISTED_HOSTS
+    available = ", ".join(listed[:_MAX_LISTED_HOSTS]) + (f" (and {more} more)" if more > 0 else "")
+    raise HostNameNotFoundError(
+        f"Host '{sanitize(requested, 200)}' not found on this target. "
+        f"Available hosts: {available or 'none'}. "
+        "Pass one of these names, or the host's management IP address."
+    )
+
+
 def find_datastore_by_name(
     si: ServiceInstance, ds_name: str
 ) -> vim.Datastore | None:

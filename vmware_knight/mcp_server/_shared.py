@@ -33,6 +33,8 @@ from vmware_knight.ops.iscsi_config import HostNotFoundError, ISCSIError
 from vmware_knight.ops.network_mgmt import NetworkError
 from vmware_knight.ops.gate import GateRefusedError
 from vmware_knight.ops.vm_lifecycle import TaskFailedError, TaskStillRunning, VMNotFoundError
+from vmware_monitor.ops.investigate_host import HostNotFoundError as MonitorHostNotFoundError
+from vmware_monitor.ops.vm_info import VMNotFoundError as MonitorVMNotFoundError
 
 logger = logging.getLogger(__name__)
 
@@ -107,6 +109,8 @@ def _safe_error(exc: Exception, tool: str) -> str:
         ClusterError,
         InventoryError,
         HostNotFoundError,
+        MonitorHostNotFoundError,
+        MonitorVMNotFoundError,
         HostNetworkError,
         ISCSIError,
         DatastoreBrowseError,
@@ -505,3 +509,10 @@ def _ensure_conn_mgr() -> ConnectionManager:
 def _get_connection(target: Optional[str] = None) -> Any:
     """Return a pyVmomi ServiceInstance, lazily initialising the manager."""
     return _ensure_conn_mgr().connect(target)
+
+
+def _target_aliases(target: Optional[str] = None) -> tuple[str, ...]:  # noqa: UP045
+    """Name, tag and configured address of ``target`` (or the default target)."""
+    cfg = _ensure_conn_mgr()._config
+    resolved = cfg.get_target(target) if target else cfg.default_target
+    return (resolved.name, resolved.tag, resolved.host)

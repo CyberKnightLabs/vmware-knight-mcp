@@ -16,7 +16,14 @@ from vmware_monitor.ops.investigate_vm import get_vm_investigation_bundle
 from vmware_policy import vmware_tool
 
 from vmware_knight.branding import normalize_branding
-from vmware_knight.mcp_server._shared import _ensure_conn_mgr, _get_connection, mcp, tool_errors
+from vmware_knight.mcp_server._shared import (
+    _ensure_conn_mgr,
+    _get_connection,
+    _target_aliases,
+    mcp,
+    tool_errors,
+)
+from vmware_knight.ops.inventory import resolve_host_name
 
 
 @mcp.tool(
@@ -125,12 +132,15 @@ def host_investigation_bundle(
     Use this AFTER cluster_health_summary flags a host. Point-in-time.
 
     Args:
-        host_name: Exact host name. Unknown names return a teaching error.
+        host_name: Host name as shown in vCenter/ESXi, in any case, or its short
+            form, or the host's management IP. On a standalone ESXi target, the
+            target's name or tag also works. Unknown names list the hosts that exist.
         target: Optional vCenter/ESXi target name from config (default if omitted).
         hours: Event-timeline look-back window in hours (default 24).
     """
     si = _get_connection(target)
-    return normalize_branding(get_host_investigation_bundle(si, host_name, hours=hours))
+    resolved = resolve_host_name(si, host_name, aliases=_target_aliases(target))
+    return normalize_branding(get_host_investigation_bundle(si, resolved, hours=hours))
 
 
 @mcp.tool(
