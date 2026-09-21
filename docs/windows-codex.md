@@ -2,17 +2,17 @@
 
 On Windows you can register VMware Knight with Codex in either of two ways:
 
-- **Wizard:** `vmware-knight wizard`, then option **7 → Codex**. Use this if VMware Knight is installed with `uv tool install`.
+- **Wizard:** `vmware-knight wizard`, then option **7 → Codex**.
 - **Standalone script** (below): it finds `vmware-knight.exe` for you and runs `codex mcp get` to confirm.
 
 Both write the same config. macOS and Linux use the wizard as usual.
 
 ## Install (2 steps)
 
-1. Install VMware Knight and add your targets, as usual:
+1. Install VMware Knight and add your targets. For the full Windows install (uv, Git, PATH), see [Option C — Windows](../README.md#option-c--windows) in the README.
 
    ```powershell
-   uv tool install vmware-knight
+   uv tool install git+https://github.com/CyberKnightLabs/vmware-knight-mcp.git
    vmware-knight init
    ```
 

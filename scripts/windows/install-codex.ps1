@@ -113,7 +113,7 @@ if (-not $ExePath) {
 
 if (-not $ExePath -or -not (Test-Path -LiteralPath $ExePath)) {
     Write-Fail 'Could not find vmware-knight.exe.'
-    Write-Host '       Install it first, for example:  uv tool install vmware-knight'
+    Write-Host '       Install it first, for example:  uv tool install git+https://github.com/CyberKnightLabs/vmware-knight-mcp.git'
     Write-Host '       or pass the path:  .\install-codex.ps1 -ExePath "C:\path\to\vmware-knight.exe"'
     exit 1
 }

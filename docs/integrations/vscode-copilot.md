@@ -6,7 +6,7 @@ VS Code's GitHub Copilot supports MCP servers via `.vscode/mcp.json`. This guide
 
 1. **Install vmware-knight**
    ```bash
-   uv tool install vmware-knight
+   uv tool install git+https://github.com/CyberKnightLabs/vmware-knight-mcp.git
    ```
 
 2. **Configure credentials**

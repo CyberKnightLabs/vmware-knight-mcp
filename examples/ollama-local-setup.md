@@ -5,7 +5,7 @@ Run VMware infrastructure operations using a local LLM — no cloud API keys req
 ## Prerequisites
 
 - **Ollama** installed: https://ollama.com
-- **vmware-knight** installed: `uv tool install vmware-knight`
+- **vmware-knight** installed: `uv tool install git+https://github.com/CyberKnightLabs/vmware-knight-mcp.git`
 - **VMware config** ready: `~/.vmware-knight/config.yaml` + `~/.vmware-knight/.env`
 
 ## Step 1: Pull a local model

@@ -5,7 +5,7 @@
       "command": "uvx",
       "args": [
         "--from",
-        "git+https://github.com/CyberKnightLabs/vmware-knight-mcp.git@v1.12.1",
+        "git+https://github.com/CyberKnightLabs/vmware-knight-mcp.git@v1.12.2",
         "vmware-knight-mcp"
       ]
     }

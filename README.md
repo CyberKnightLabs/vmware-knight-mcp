@@ -15,6 +15,8 @@ VMware Knight also includes VMware lifecycle, deployment, guest operations, clus
 
 > VMware Knight is a community project and is not an official VMware product.
 
+> **Platforms:** macOS, Linux and Windows 10/11. Windows users: see [Option C — Windows](#option-c--windows) for installation, and [docs/windows-codex.md](docs/windows-codex.md) for Codex.
+
 ---
 
 ## About the Author
@@ -353,8 +355,11 @@ The wizard asks for the VMware Knight executable path and writes or updates the 
 The default executable location is typically:
 
 ```text
-~/.local/bin/vmware-knight
+~/.local/bin/vmware-knight                        # macOS / Linux
+%USERPROFILE%\.local\bin\vmware-knight.exe        # Windows
 ```
+
+On Windows, the wizard's **Codex** option works as-is. The **Claude Desktop** option currently writes the macOS config location, so on Windows configure Claude Desktop manually instead (see [Claude Desktop on Windows](#claude-desktop-on-windows)).
 
 The generated MCP server name is:
 
@@ -407,6 +412,58 @@ vmware-knight-mcp
 ```
 
 > `vmware-knight-mcp` is a stdio MCP server entry point. It is normally started by an MCP client and may appear to wait silently if launched directly from a terminal. Use `vmware-knight --help` to verify the installation.
+
+---
+
+## Option C — Windows
+
+VMware Knight runs natively on Windows 10 and 11. Run these commands in **PowerShell** (no administrator rights needed).
+
+Install `uv` and Git, if you don't have them yet:
+
+```powershell
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+winget install --id Git.Git -e
+```
+
+`uv` downloads a suitable Python automatically, so you don't need to install Python separately. Git is needed because VMware Knight is installed straight from GitHub.
+
+Open a **new** PowerShell window, then install VMware Knight:
+
+```powershell
+uv tool install git+https://github.com/CyberKnightLabs/vmware-knight-mcp.git
+uv tool update-shell
+```
+
+`uv tool update-shell` adds `%USERPROFILE%\.local\bin` to your `PATH`. Open a new PowerShell window again, then verify:
+
+```powershell
+where.exe vmware-knight
+vmware-knight --help
+```
+
+`where.exe` should print a path like:
+
+```text
+C:\Users\USERNAME\.local\bin\vmware-knight.exe
+```
+
+Then run the wizard to add your targets, exactly as on macOS:
+
+```powershell
+vmware-knight wizard
+```
+
+Windows-specific notes:
+
+| Topic | Windows |
+|---|---|
+| Config folder | `%USERPROFILE%\.vmware-knight\` (`config.yaml` and `.env`) |
+| Executable | `%USERPROFILE%\.local\bin\vmware-knight.exe` |
+| Codex config | `%USERPROFILE%\.codex\config.toml`: use the wizard, or the [Windows installer script](docs/windows-codex.md) |
+| Claude Desktop config | Configure manually: see [Claude Desktop on Windows](#claude-desktop-on-windows) |
+| `.env` permissions | `vmware-knight doctor` reports the `.env` permission check as *unknown* on NTFS. This is expected, not a failure. |
+| Find the executable | `where.exe vmware-knight` (instead of `which`) |
 
 ---
 
@@ -498,7 +555,7 @@ Using VMware Knight, show me all VMs on lab-vcenter.
 
 VMware Knight can install its MCP configuration directly into Codex.
 
-> **Windows users:** the wizard and the command below both work. There is also a standalone installer script; see [docs/windows-codex.md](docs/windows-codex.md).
+> **Windows users:** the wizard (`vmware-knight wizard` → 7 → 2) and the command below both work on Windows. Use `where.exe vmware-knight` instead of `which`, and pass the `.exe` path, for example `--path "$env:USERPROFILE\.local\bin\vmware-knight.exe"`. There is also a standalone installer script that finds the executable for you; see [docs/windows-codex.md](docs/windows-codex.md).
 
 First locate the installed VMware Knight executable:
 
@@ -588,7 +645,8 @@ This confirms Codex is using VMware Knight through MCP rather than reading local
 VMware Knight stores its configuration under:
 
 ```text
-~/.vmware-knight/
+~/.vmware-knight/                     # macOS / Linux
+%USERPROFILE%\.vmware-knight\         # Windows
 ```
 
 Primary files include:
@@ -608,6 +666,12 @@ Example:
 
 ```bash
 VMWARE_KNIGHT_CONFIG=/path/to/config.yaml vmware-knight doctor
+```
+
+On Windows (PowerShell):
+
+```powershell
+$env:VMWARE_KNIGHT_CONFIG = "C:\path\to\config.yaml"; vmware-knight doctor
 ```
 
 ## Example target configuration
@@ -707,6 +771,29 @@ vmware-knight --help
 
 > `vmware-knight-mcp` is the stdio MCP server entry point used by MCP clients. You normally do not need to run it manually.
 
+### Claude Desktop on Windows
+
+The wizard's Claude Desktop option writes the macOS config location, so on Windows add the entry by hand:
+
+1. In Claude Desktop, open **Settings → Developer → Edit Config**. This opens `claude_desktop_config.json` in the right place for your install (usually `%APPDATA%\Claude\claude_desktop_config.json`).
+2. Find your executable path with `where.exe vmware-knight`.
+3. Add VMware Knight under `mcpServers`. In JSON, every backslash must be doubled:
+
+```json
+{
+  "mcpServers": {
+    "vmware-knight": {
+      "command": "C:\\Users\\USERNAME\\.local\\bin\\vmware-knight.exe",
+      "args": ["mcp"]
+    }
+  }
+}
+```
+
+If the file already has other servers, add `"vmware-knight": { ... }` next to them inside the existing `mcpServers` object.
+
+4. Fully quit Claude Desktop (right-click its tray icon → **Quit**), reopen it, and start a new chat.
+
 ---
 
 ## OpenAI Codex
@@ -733,6 +820,24 @@ args = ["mcp"]
 enabled = true
 startup_timeout_sec = 120
 ```
+
+On Windows, the wizard also adds `.exe` to the path and passes your home folder to the server:
+
+```toml
+[mcp_servers.vmware-knight]
+command = "C:\\Users\\yourname\\.local\\bin\\vmware-knight.exe"
+args = ["mcp"]
+enabled = true
+startup_timeout_sec = 120
+
+[mcp_servers.vmware-knight.env]
+USERPROFILE = "C:\\Users\\yourname"
+SYSTEMROOT = "C:\\WINDOWS"
+PYTHONUTF8 = "1"
+# ...plus APPDATA, LOCALAPPDATA, TEMP and TMP
+```
+
+Codex does not need **Full Access** to use VMware Knight: MCP tools run outside the Codex shell sandbox. If Codex only works with Full Access, the MCP entry is not loading; see [docs/windows-codex.md](docs/windows-codex.md).
 
 Restart Codex after changing its MCP configuration.
 
@@ -1340,6 +1445,12 @@ uv tool install --force \
   git+https://github.com/CyberKnightLabs/vmware-knight-mcp.git
 ```
 
+The same command works in PowerShell on Windows, written on one line:
+
+```powershell
+uv tool install --force git+https://github.com/CyberKnightLabs/vmware-knight-mcp.git
+```
+
 For a cloned repository:
 
 ```bash
@@ -1357,6 +1468,8 @@ uv sync
 ```bash
 vmware-knight --help
 ```
+
+On Windows, if PowerShell says `vmware-knight` is not recognized, run `uv tool update-shell`, open a new PowerShell window, and check with `where.exe vmware-knight`.
 
 ## Check VMware configuration
 
@@ -1402,6 +1515,12 @@ args = ["mcp"]
 enabled = true
 startup_timeout_sec = 120
 ```
+
+On Windows, also check:
+
+- the `command` path ends in `.exe`
+- in Codex's TOML, the path is either in single quotes (`'C:\Users\...'`) or has doubled backslashes (`"C:\\Users\\..."`); single backslashes inside double quotes break the whole file
+- `codex mcp get vmware-knight` shows the entry; if it reports a parse error, re-run the wizard or the [Windows installer script](docs/windows-codex.md)
 
 ## TLS errors in a lab
 
