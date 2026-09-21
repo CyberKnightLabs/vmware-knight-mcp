@@ -156,4 +156,4 @@ Local-model compatibility is an explicit design constraint for this family, and
 the evidence base is small. If you evaluate a model against this skill —
 Qwen, Mistral, Granite, or anything else — a report of what worked and what did
 not is genuinely useful:
-[github.com/vmware-skills/VMware Knight/issues](https://github.com/vmware-skills/VMware Knight/issues).
+[github.com/CyberKnightLabs/vmware-knight-mcp/issues](https://github.com/CyberKnightLabs/vmware-knight-mcp/issues).

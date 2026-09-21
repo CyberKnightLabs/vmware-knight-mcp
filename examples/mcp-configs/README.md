@@ -6,8 +6,8 @@ Copy the relevant config snippet into your AI agent's MCP configuration file.
 
 ```bash
 # Install vmware-knight
-uv tool install vmware-knight
-# or: pip install vmware-knight
+uv tool install git+https://github.com/CyberKnightLabs/vmware-knight-mcp.git
+# or: pip install git+https://github.com/CyberKnightLabs/vmware-knight-mcp.git
 
 # Configure credentials
 mkdir -p ~/.vmware-knight
