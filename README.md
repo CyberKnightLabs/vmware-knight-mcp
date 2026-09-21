@@ -359,7 +359,7 @@ The default executable location is typically:
 %USERPROFILE%\.local\bin\vmware-knight.exe        # Windows
 ```
 
-On Windows, the wizard's **Codex** option works as-is. The **Claude Desktop** option currently writes the macOS config location, so on Windows configure Claude Desktop manually instead (see [Claude Desktop on Windows](#claude-desktop-on-windows)).
+Both options work on Windows: the wizard uses the Windows config locations, adds `.exe` to the path, and passes your home folder to the server (see [Claude Desktop on Windows](#claude-desktop-on-windows)).
 
 The generated MCP server name is:
 
@@ -461,7 +461,7 @@ Windows-specific notes:
 | Config folder | `%USERPROFILE%\.vmware-knight\` (`config.yaml` and `.env`) |
 | Executable | `%USERPROFILE%\.local\bin\vmware-knight.exe` |
 | Codex config | `%USERPROFILE%\.codex\config.toml`: use the wizard, or the [Windows installer script](docs/windows-codex.md) |
-| Claude Desktop config | Configure manually: see [Claude Desktop on Windows](#claude-desktop-on-windows) |
+| Claude Desktop config | `%APPDATA%\Claude\claude_desktop_config.json` (Microsoft Store installs: under `%LOCALAPPDATA%\Packages\Claude_*`): use the wizard; see [Claude Desktop on Windows](#claude-desktop-on-windows) |
 | `.env` permissions | `vmware-knight doctor` reports the `.env` permission check as *unknown* on NTFS. This is expected, not a failure. |
 | Find the executable | `where.exe vmware-knight` (instead of `which`) |
 
@@ -729,7 +729,8 @@ Press **Enter** to accept the default path, then confirm the installation with *
 VMware Knight resolves the real executable path automatically and writes the MCP configuration to:
 
 ```text
-~/Library/Application Support/Claude/claude_desktop_config.json
+~/Library/Application Support/Claude/claude_desktop_config.json     # macOS
+%APPDATA%\Claude\claude_desktop_config.json                         # Windows
 ```
 
 A typical generated entry looks like:
@@ -773,7 +774,34 @@ vmware-knight --help
 
 ### Claude Desktop on Windows
 
-The wizard's Claude Desktop option writes the macOS config location, so on Windows add the entry by hand:
+The wizard works on Windows too: `vmware-knight wizard` → **7** → **1**, accept the default path, and confirm. It writes to the right place:
+
+| Claude Desktop install | Config file |
+|---|---|
+| Installer from claude.ai | `%APPDATA%\Claude\claude_desktop_config.json` |
+| Microsoft Store | `%LOCALAPPDATA%\Packages\Claude_*\LocalCache\Roaming\Claude\claude_desktop_config.json` |
+
+On Windows, the generated entry also includes the `.exe` path and an `env` section with your home folder, so the server finds `%USERPROFILE%\.vmware-knight`:
+
+```json
+{
+  "mcpServers": {
+    "vmware-knight": {
+      "command": "C:\\Users\\USERNAME\\.local\\bin\\vmware-knight.exe",
+      "args": ["mcp"],
+      "env": {
+        "USERPROFILE": "C:\\Users\\USERNAME",
+        "SYSTEMROOT": "C:\\WINDOWS",
+        "PYTHONUTF8": "1"
+      }
+    }
+  }
+}
+```
+
+Then fully quit Claude Desktop (right-click its tray icon → **Quit**), reopen it, and start a new chat.
+
+**Manual setup**, if you prefer to edit the file yourself or the wizard picked the wrong file:
 
 1. In Claude Desktop, open **Settings → Developer → Edit Config**. This opens `claude_desktop_config.json` in the right place for your install (usually `%APPDATA%\Claude\claude_desktop_config.json`).
 2. Find your executable path with `where.exe vmware-knight`.

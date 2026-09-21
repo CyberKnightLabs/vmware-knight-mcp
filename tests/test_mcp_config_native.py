@@ -164,3 +164,69 @@ def test_default_executable_per_platform(monkeypatch):
     assert mcp_config.default_executable() == str(
         Path.home() / ".local" / "bin" / "vmware-knight"
     )
+
+
+def test_claude_config_path_non_windows_is_unchanged(monkeypatch):
+    monkeypatch.setattr(mcp_config, "_IS_WINDOWS", False)
+
+    assert mcp_config._claude_config_path() == (
+        Path.home() / "Library" / "Application Support" / "Claude"
+        / "claude_desktop_config.json"
+    )
+
+
+def test_claude_config_path_windows_uses_appdata(tmp_path, monkeypatch):
+    monkeypatch.setattr(mcp_config, "_IS_WINDOWS", True)
+    monkeypatch.setenv("APPDATA", str(tmp_path / "Roaming"))
+    monkeypatch.setenv("LOCALAPPDATA", str(tmp_path / "Local"))
+
+    assert mcp_config._claude_config_path() == (
+        tmp_path / "Roaming" / "Claude" / "claude_desktop_config.json"
+    )
+
+
+def test_claude_config_path_windows_store_install(tmp_path, monkeypatch):
+    monkeypatch.setattr(mcp_config, "_IS_WINDOWS", True)
+    monkeypatch.setenv("APPDATA", str(tmp_path / "Roaming"))
+    monkeypatch.setenv("LOCALAPPDATA", str(tmp_path / "Local"))
+    store = tmp_path / "Local" / "Packages" / "Claude_pzs8sxrjxfjjc"
+    (store / "LocalCache" / "Roaming" / "Claude").mkdir(parents=True)
+
+    assert mcp_config._claude_config_path() == (
+        store / "LocalCache" / "Roaming" / "Claude" / "claude_desktop_config.json"
+    )
+
+
+def test_claude_install_windows_adds_exe_and_env(tmp_path, monkeypatch):
+    dest = tmp_path / "claude_desktop_config.json"
+    # Notepad on Windows may save the file with a UTF-8 BOM.
+    dest.write_text(
+        json.dumps({"mcpServers": {"existing-server": {"command": "x"}}}),
+        encoding="utf-8-sig",
+    )
+    monkeypatch.setitem(mcp_config._AGENT_INSTALL_PATHS, "claude", dest)
+    monkeypatch.setattr(mcp_config, "_IS_WINDOWS", True)
+    monkeypatch.setenv("USERPROFILE", r"C:\Users\tester")
+
+    mcp_config.mcp_config_install(
+        agent="claude", install_path="/opt/test/vmware-knight", yes=True
+    )
+
+    servers = json.loads(dest.read_text(encoding="utf-8"))["mcpServers"]
+    assert "existing-server" in servers
+    assert servers["vmware-knight"]["command"] == _resolved_test_executable() + ".exe"
+    assert servers["vmware-knight"]["env"]["USERPROFILE"] == r"C:\Users\tester"
+    assert servers["vmware-knight"]["env"]["PYTHONUTF8"] == "1"
+
+
+def test_claude_install_non_windows_has_no_env(tmp_path, monkeypatch):
+    dest = tmp_path / "claude_desktop_config.json"
+    monkeypatch.setitem(mcp_config._AGENT_INSTALL_PATHS, "claude", dest)
+    monkeypatch.setattr(mcp_config, "_IS_WINDOWS", False)
+
+    mcp_config.mcp_config_install(
+        agent="claude", install_path="/opt/test/vmware-knight", yes=True
+    )
+
+    entry = json.loads(dest.read_text())["mcpServers"]["vmware-knight"]
+    assert entry == {"command": _resolved_test_executable(), "args": ["mcp"]}
