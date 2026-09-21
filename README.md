@@ -368,46 +368,49 @@ vmware-knight
 
 ## Option A — Clone from GitHub
 
-This is the recommended installation method while working directly from the project repository.
+This is the recommended installation method.
 
 ```bash
 git clone https://github.com/CyberKnightLabs/vmware-knight-mcp.git
 cd vmware-knight-mcp
 ```
 
-Install with `uv`:
+Install VMware Knight with `uv`:
 
 ```bash
 uv tool install .
 ```
 
-Or install directly from GitHub without cloning first:
+You can also install directly from GitHub without cloning:
 
 ```bash
 uv tool install git+https://github.com/CyberKnightLabs/vmware-knight-mcp.git
 ```
 
-With `pip`:
+Or with `pip`:
 
 ```bash
 pip install git+https://github.com/CyberKnightLabs/vmware-knight-mcp.git
 ```
 
-After installation, verify the CLI:
+Verify the CLI installation:
 
 ```bash
 vmware-knight --help
 ```
 
-You should also have the MCP entry point:
+A successful installation provides these executables:
 
-```bash
+```text
+vmware-knight
 vmware-knight-mcp
 ```
 
+> `vmware-knight-mcp` is a stdio MCP server entry point. It is normally started by an MCP client and may appear to wait silently if launched directly from a terminal. Use `vmware-knight --help` to verify the installation.
+
 ---
 
-## Option B — Development installation
+## Option B — Development Installation
 
 Clone the repository:
 
@@ -416,25 +419,25 @@ git clone https://github.com/CyberKnightLabs/vmware-knight-mcp.git
 cd vmware-knight-mcp
 ```
 
-Create/use the project environment:
+Create the project environment:
 
 ```bash
 uv sync
 ```
 
-Run commands from the source tree:
+Run VMware Knight directly from the source tree:
 
 ```bash
 uv run vmware-knight --help
 ```
 
-Start the wizard:
+Start the management wizard:
 
 ```bash
 uv run vmware-knight wizard
 ```
 
-Run the MCP server:
+Start the MCP server:
 
 ```bash
 uv run vmware-knight mcp
@@ -444,23 +447,35 @@ uv run vmware-knight mcp
 
 # 4. First-Time Setup
 
-After installing VMware Knight, start the wizard:
+After installing VMware Knight, start the interactive management wizard:
 
 ```bash
 vmware-knight wizard
 ```
 
-Recommended first-time sequence:
+The wizard can:
 
 ```text
-1. Choose "Add VMware target"
-2. Add your vCenter or standalone ESXi host
-3. Assign a friendly tag
-4. Run "Test connections"
-5. Repeat for additional VMware targets
-6. Choose "Configure MCP clients"
-7. Configure Claude Desktop or Codex
-8. Restart the MCP client
+1. List VMware targets
+2. Add VMware target
+3. Edit VMware target
+4. Remove VMware target
+5. Set/Change target tag
+6. Test connections
+7. Configure MCP clients
+8. Exit
+```
+
+A recommended first-time sequence is:
+
+```text
+1. Add your vCenter or standalone ESXi target.
+2. Assign a friendly tag such as lab-vcenter or production-vcenter.
+3. Repeat for any additional VMware targets.
+4. Run Test connections.
+5. Configure your MCP client.
+6. Start a fresh MCP client session.
+7. Ask the AI client to use VMware Knight against one of your friendly tags.
 ```
 
 Example environment:
@@ -468,18 +483,101 @@ Example environment:
 ```text
 Name            Tag              Type       Host
 --------------  ---------------  ---------  -------------------------------
-vcenter         lab-vcenter      vcenter    vc.networkingwithehsan.local
+vcenter         lab-vcenter      vcenter    vc.example.local
 esxi-01         esxi-lab-01      esxi       10.10.10.51
 esxi-02         esxi-lab-02      esxi       10.10.10.52
 ```
 
-After setup, the AI assistant can use the tags directly.
-
-Example:
+After setup, the AI assistant can use the friendly tag directly:
 
 ```text
 Using VMware Knight, show me all VMs on lab-vcenter.
 ```
+
+## Configure Codex
+
+VMware Knight can install its MCP configuration directly into Codex.
+
+First locate the installed VMware Knight executable:
+
+```bash
+which vmware-knight
+```
+
+Typical `uv` installations expose it through:
+
+```text
+~/.local/bin/vmware-knight
+```
+
+Install VMware Knight into Codex:
+
+```bash
+vmware-knight mcp-config install \
+  --agent codex \
+  --path ~/.local/bin/vmware-knight \
+  --yes
+```
+
+VMware Knight resolves the real executable path and writes the MCP entry into:
+
+```text
+~/.codex/config.toml
+```
+
+The resulting Codex configuration is similar to:
+
+```toml
+[mcp_servers.vmware-knight]
+command = "/Users/USERNAME/.local/share/uv/tools/vmware-knight/bin/vmware-knight"
+args = ["mcp"]
+enabled = true
+startup_timeout_sec = 120
+```
+
+After installation, start a **fresh Codex session** so the MCP configuration is loaded.
+
+If the Codex CLI is available, verify the server with:
+
+```bash
+codex mcp list
+codex mcp get vmware-knight
+```
+
+On macOS installations where Codex is bundled inside the ChatGPT application but is not on your shell `PATH`, you can use:
+
+```bash
+/Applications/ChatGPT.app/Contents/Resources/codex mcp list
+```
+
+and:
+
+```bash
+/Applications/ChatGPT.app/Contents/Resources/codex mcp get vmware-knight
+```
+
+A healthy configuration should report:
+
+```text
+vmware-knight
+  enabled: true
+  transport: stdio
+  args: mcp
+```
+
+Then test the live MCP connection from a fresh Codex session with a request such as:
+
+```text
+Use the VMware Knight MCP tool cluster_health_summary against target lab-vcenter with top_n=2.
+```
+
+A successful Codex session should show a tool call similar to:
+
+```text
+Called vmware-knight.cluster_health_summary(...)
+```
+
+This confirms Codex is using VMware Knight through MCP rather than reading local files.
 
 ---
 
