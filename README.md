@@ -471,7 +471,7 @@ If it prints `False`, Git did not install: run Step 2 again, or use the installe
 uv tool install git+https://github.com/CyberKnightLabs/vmware-knight-mcp.git
 ```
 
-To install a specific release instead of the latest code, add the tag, for example `...vmware-knight-mcp.git@v1.12.5`.
+To install a specific release instead of the latest code, add the tag, for example `...vmware-knight-mcp.git@v1.12.6`.
 
 **Step 6 — Add VMware Knight to PATH (required).** You must run both commands. `uv tool update-shell` adds `%USERPROFILE%\.local\bin` to your PATH. Step 3's command makes the current window see it:
 
