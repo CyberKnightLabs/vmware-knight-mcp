@@ -12,7 +12,7 @@ installer:
 argument-hint: "[vm-name or describe your task]"
 allowed-tools:
   - Bash
-metadata: {"openclaw":{"requires":{"anyBins":["vmware-knight","uvx"]},"optional":{"env":["VMWARE_KNIGHT_CONFIG","VMWARE_TARGET_PASSWORD","VMWARE_<TARGET>_USERNAME","SLACK_WEBHOOK_URL","DISCORD_WEBHOOK_URL","VMWARE_AUDIT_APPROVED_BY"],"bins":["vmware-policy"]},"homepage":"https://github.com/vmware-skills/VMware Knight","emoji":"🖥️","os":["macos","linux"]}}
+metadata: {"openclaw":{"requires":{"anyBins":["vmware-knight","uvx"]},"optional":{"env":["VMWARE_KNIGHT_CONFIG","VMWARE_TARGET_PASSWORD","VMWARE_<TARGET>_USERNAME","SLACK_WEBHOOK_URL","DISCORD_WEBHOOK_URL","VMWARE_AUDIT_APPROVED_BY"],"bins":["vmware-policy"]},"homepage":"https://github.com/CyberKnightLabs/vmware-knight-mcp","emoji":"🖥️","os":["macos","linux"]}}
 compatibility: >
   vmware-policy auto-installed as Python dependency (provides @vmware_tool decorator and audit logging). All write operations audited to ~/.vmware/audit.db.
   Credentials: Each vCenter/ESXi target requires a per-target password env var in ~/.vmware-knight/.env following the pattern VMWARE_<TARGET_NAME_UPPER>_PASSWORD. Passwords are never logged or echoed.
@@ -25,7 +25,7 @@ compatibility: >
 
 # VMware Knight
 
-> **Disclaimer**: This is a community-maintained open-source project and is **not affiliated with, endorsed by, or sponsored by VMware, Inc. or Broadcom Inc.** "VMware" and "vSphere" are trademarks of Broadcom. Source code is publicly auditable at [github.com/vmware-skills/VMware Knight](https://github.com/vmware-skills/VMware Knight) under the MIT license.
+> **Disclaimer**: This is a community-maintained open-source project and is **not affiliated with, endorsed by, or sponsored by VMware, Inc. or Broadcom Inc.** "VMware" and "vSphere" are trademarks of Broadcom. Source code is publicly auditable at [github.com/CyberKnightLabs/vmware-knight-mcp](https://github.com/CyberKnightLabs/vmware-knight-mcp) under the MIT license.
 
 VMware family entry point — AI-powered VM lifecycle, deployment, and alarm management — 60 MCP tools.
 
@@ -62,7 +62,7 @@ Read before connecting an agent. Per-tool inventory: `references/capabilities.md
 ## Quick Install
 
 ```bash
-uv tool install vmware-knight==1.12.1
+uv tool install git+https://github.com/CyberKnightLabs/vmware-knight-mcp.git@v1.12.1
 vmware-knight doctor
 vmware-knight hub status   # see which family members are installed
 ```
@@ -298,7 +298,7 @@ Run `vmware-knight plan list` to see failed plan status. Ask user if they want t
 ## Setup
 
 ```bash
-uv tool install vmware-knight==1.12.1
+uv tool install git+https://github.com/CyberKnightLabs/vmware-knight-mcp.git@v1.12.1
 mkdir -p ~/.vmware-knight
 vmware-knight init  # generates config.yaml and .env templates
 chmod 600 ~/.vmware-knight/.env
@@ -308,4 +308,4 @@ chmod 600 ~/.vmware-knight/.env
 
 ## License
 
-MIT — [github.com/vmware-skills/VMware Knight](https://github.com/vmware-skills/VMware Knight)
+MIT — [github.com/CyberKnightLabs/vmware-knight-mcp](https://github.com/CyberKnightLabs/vmware-knight-mcp)

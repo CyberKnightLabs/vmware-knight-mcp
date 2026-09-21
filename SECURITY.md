@@ -4,14 +4,14 @@
 
 This is a community-maintained open-source project and is **not affiliated with, endorsed by, or sponsored by VMware, Inc. or Broadcom Inc.** "VMware" and "vSphere" are trademarks of Broadcom Inc.
 
-**Author**: Wei Zhou, VMware by Broadcom — wei-wz.zhou@broadcom.com
+**Maintainer**: Ehsan Emad — nomadsoul18@gmail.com (based on original work by Wei Zhou)
 
 ## Reporting Vulnerabilities
 
 If you discover a security vulnerability, please report it privately:
 
-- **Email**: wei-wz.zhou@broadcom.com
-- **GitHub**: Open a [private security advisory](https://github.com/vmware-skills/VMware Knight/security/advisories/new)
+- **Email**: nomadsoul18@gmail.com
+- **GitHub**: Open a [private security advisory](https://github.com/CyberKnightLabs/vmware-knight-mcp/security/advisories/new)
 
 Do **not** open a public GitHub issue for security vulnerabilities.
 

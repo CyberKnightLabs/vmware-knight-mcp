@@ -2,14 +2,14 @@
 
 ## Installation
 
-All install methods fetch from the same source: [github.com/vmware-skills/VMware Knight](https://github.com/vmware-skills/VMware Knight) (MIT licensed). We recommend reviewing the source code before installing.
+All install methods fetch from the same source: [github.com/CyberKnightLabs/vmware-knight-mcp](https://github.com/CyberKnightLabs/vmware-knight-mcp) (MIT licensed). We recommend reviewing the source code before installing.
 
 ```bash
-# Via PyPI (recommended for version pinning)
-uv tool install vmware-knight==1.12.1
+# From GitHub, pinned to a release tag (recommended)
+uv tool install git+https://github.com/CyberKnightLabs/vmware-knight-mcp.git@v1.12.1
 
 # Via Skills.sh (fetches from GitHub)
-npx skills add vmware-skills/VMware Knight#v1.12.1
+npx skills add CyberKnightLabs/vmware-knight-mcp#v1.12.1
 
 # Via ClawHub (fetches from ClawHub registry snapshot of GitHub)
 clawhub install @CyberKnightLabs/vmware-knight --version 1.12.1
@@ -34,11 +34,11 @@ claude mcp add vmware-knight -- vmware-knight mcp
 ## Configuration
 
 ```bash
-# 1. Install from PyPI (source: github.com/vmware-skills/VMware Knight)
-uv tool install vmware-knight==1.12.1
+# 1. Install from GitHub (pinned to the v1.12.1 release tag)
+uv tool install git+https://github.com/CyberKnightLabs/vmware-knight-mcp.git@v1.12.1
 
 # 2. Verify installation source
-vmware-knight --version  # confirms installed version
+uv tool list | grep vmware-knight  # confirms installed version
 
 # 3. Configure
 mkdir -p ~/.vmware-knight
@@ -73,8 +73,8 @@ The `vmware-knight` package installs a Python CLI binary and its dependencies (p
 ## Development Install
 
 ```bash
-git clone --branch v1.12.1 https://github.com/vmware-skills/VMware Knight.git
-cd VMware Knight
+git clone --branch v1.12.1 https://github.com/CyberKnightLabs/vmware-knight-mcp.git
+cd vmware-knight-mcp
 uv venv && source .venv/bin/activate
 # --no-sources: pyproject's [tool.uv.sources] points vmware-monitor at a sibling
 # checkout (../VMware-Monitor) for family development. A fresh clone has none, so
@@ -107,7 +107,7 @@ whitespace are handled correctly).
 
 > **Disclaimer**: This is a community-maintained open-source project and is **not affiliated with, endorsed by, or sponsored by VMware, Inc. or Broadcom Inc.** "VMware" and "vSphere" are trademarks of Broadcom.
 
-- **Source Code**: Fully open source at [github.com/vmware-skills/VMware Knight](https://github.com/vmware-skills/VMware Knight) (MIT). The `uv` installer fetches the `vmware-knight` package from PyPI, which is built from this GitHub repository. We recommend reviewing the source code and commit history before deploying in production.
+- **Source Code**: Fully open source at [github.com/CyberKnightLabs/vmware-knight-mcp](https://github.com/CyberKnightLabs/vmware-knight-mcp) (MIT). The `uv` installer builds the `vmware-knight` package directly from this GitHub repository at the pinned release tag. We recommend reviewing the source code and commit history before deploying in production.
 - **TLS Verification**: Enabled by default. Setting `verify_ssl: false` is solely for ESXi hosts using self-signed certificates in isolated lab/home environments. In production, always use CA-signed certificates with full TLS verification.
 - **Credentials & Config**: This skill requires the following secrets, all stored in `~/.vmware-knight/.env` (`chmod 600`, loaded via `python-dotenv`):
   - `VMWARE_<TARGET>_PASSWORD` — per-target password where `<TARGET>` is the uppercased target name from `config.yaml` (hyphens become underscores). Example: target named `vcenter-prod` uses `VMWARE_VCENTER_PROD_PASSWORD`.
