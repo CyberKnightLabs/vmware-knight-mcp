@@ -62,7 +62,7 @@ Read before connecting an agent. Per-tool inventory: `references/capabilities.md
 ## Quick Install
 
 ```bash
-uv tool install git+https://github.com/CyberKnightLabs/vmware-knight-mcp.git@v1.12.6
+uv tool install git+https://github.com/CyberKnightLabs/vmware-knight-mcp.git@v1.12.7
 vmware-knight doctor
 vmware-knight hub status   # see which family members are installed
 ```
@@ -298,7 +298,7 @@ Run `vmware-knight plan list` to see failed plan status. Ask user if they want t
 ## Setup
 
 ```bash
-uv tool install git+https://github.com/CyberKnightLabs/vmware-knight-mcp.git@v1.12.6
+uv tool install git+https://github.com/CyberKnightLabs/vmware-knight-mcp.git@v1.12.7
 mkdir -p ~/.vmware-knight
 vmware-knight init  # generates config.yaml and .env templates
 chmod 600 ~/.vmware-knight/.env
