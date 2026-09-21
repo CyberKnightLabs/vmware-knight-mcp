@@ -1,6 +1,11 @@
 # VMware Knight + Codex on Windows
 
-Use this instead of wizard option **7 → Codex** on Windows. macOS and Linux users should keep using the wizard.
+On Windows you can register VMware Knight with Codex in either of two ways:
+
+- **Wizard:** `vmware-knight wizard`, then option **7 → Codex**. Use this if VMware Knight is installed with `uv tool install`.
+- **Standalone script** (below): it finds `vmware-knight.exe` for you and runs `codex mcp get` to confirm.
+
+Both write the same config. macOS and Linux use the wizard as usual.
 
 ## Install (2 steps)
 
@@ -44,7 +49,7 @@ PYTHONUTF8 = '1'
 # ...plus APPDATA, LOCALAPPDATA, TEMP, TMP, HOMEDRIVE, HOMEPATH
 ```
 
-Why the generic installer fails on Windows:
+Why older wizard versions failed on Windows (fixed in the wizard and the script):
 
 | Problem | Effect | Fix in the script |
 |---|---|---|
