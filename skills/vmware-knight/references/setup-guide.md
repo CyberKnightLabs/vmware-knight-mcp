@@ -6,13 +6,13 @@ All install methods fetch from the same source: [github.com/CyberKnightLabs/vmwa
 
 ```bash
 # From GitHub, pinned to a release tag (recommended)
-uv tool install git+https://github.com/CyberKnightLabs/vmware-knight-mcp.git@v1.12.6
+uv tool install git+https://github.com/CyberKnightLabs/vmware-knight-mcp.git@v1.12.7
 
 # Via Skills.sh (fetches from GitHub)
-npx skills add CyberKnightLabs/vmware-knight-mcp#v1.12.6
+npx skills add CyberKnightLabs/vmware-knight-mcp#v1.12.7
 
 # Via ClawHub (fetches from ClawHub registry snapshot of GitHub)
-clawhub install @CyberKnightLabs/vmware-knight --version 1.12.6
+clawhub install @CyberKnightLabs/vmware-knight --version 1.12.7
 ```
 
 ### Claude Code
@@ -34,8 +34,8 @@ claude mcp add vmware-knight -- vmware-knight mcp
 ## Configuration
 
 ```bash
-# 1. Install from GitHub (pinned to the v1.12.6 release tag)
-uv tool install git+https://github.com/CyberKnightLabs/vmware-knight-mcp.git@v1.12.6
+# 1. Install from GitHub (pinned to the v1.12.7 release tag)
+uv tool install git+https://github.com/CyberKnightLabs/vmware-knight-mcp.git@v1.12.7
 
 # 2. Verify installation source
 uv tool list | grep vmware-knight  # confirms installed version
@@ -73,7 +73,7 @@ The `vmware-knight` package installs a Python CLI binary and its dependencies (p
 ## Development Install
 
 ```bash
-git clone --branch v1.12.6 https://github.com/CyberKnightLabs/vmware-knight-mcp.git
+git clone --branch v1.12.7 https://github.com/CyberKnightLabs/vmware-knight-mcp.git
 cd vmware-knight-mcp
 uv venv && source .venv/bin/activate
 # --no-sources: pyproject's [tool.uv.sources] points vmware-monitor at a sibling
