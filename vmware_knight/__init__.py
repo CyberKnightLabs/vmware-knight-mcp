@@ -1,3 +1,3 @@
 """VMware Knight - AI-powered vCenter/ESXi monitoring and operations."""
 
-__version__ = "1.12.5"
+__version__ = "1.12.6"
