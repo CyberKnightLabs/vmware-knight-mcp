@@ -6,6 +6,7 @@ Checks all prerequisites and prints a pass/fail summary, similar to `brew doctor
 from __future__ import annotations
 
 import json
+import os
 import socket
 from typing import Callable
 
@@ -21,6 +22,8 @@ _PASS = "[green]✓[/]"  # nosec B105 — rich color markup, not a password
 _FAIL = "[red]✗[/]"
 _WARN = "[yellow]![/]"
 _INFO = "[cyan]i[/]"
+
+_IS_WINDOWS = os.name == "nt"
 
 
 def _check(label: str, fn: Callable[[], tuple[bool, str]]) -> tuple[bool, str, str]:
@@ -165,11 +168,48 @@ def _check_auth() -> tuple[bool, str]:
             pass
     return all_ok, "  ".join(parts)
 
+def _windows_pid_alive(pid: int) -> bool:
+    """Whether ``pid`` is a running process, without touching it.
+
+    On Windows, ``os.kill(pid, 0)`` does not probe: any signal other than
+    CTRL_C_EVENT/CTRL_BREAK_EVENT calls TerminateProcess, so the check would end
+    the daemon (or whatever process reused a stale PID). Ask the OS instead.
+    """
+    import ctypes
+    from ctypes import wintypes
+
+    process_query_limited_information = 0x1000
+    still_active = 259
+    error_access_denied = 5
+
+    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel32.OpenProcess.restype = wintypes.HANDLE
+    kernel32.OpenProcess.argtypes = (wintypes.DWORD, wintypes.BOOL, wintypes.DWORD)
+    kernel32.GetExitCodeProcess.argtypes = (wintypes.HANDLE, ctypes.POINTER(wintypes.DWORD))
+    kernel32.CloseHandle.argtypes = (wintypes.HANDLE,)
+
+    handle = kernel32.OpenProcess(process_query_limited_information, False, pid)
+    if not handle:
+        # Access denied means the process exists but belongs to someone else.
+        return ctypes.get_last_error() == error_access_denied
+    try:
+        code = wintypes.DWORD()
+        if not kernel32.GetExitCodeProcess(handle, ctypes.byref(code)):
+            return True
+        return code.value == still_active
+    finally:
+        kernel32.CloseHandle(handle)
+
+
 def _check_daemon() -> tuple[bool, str]:
     pid_file = CONFIG_DIR / "daemon.pid"
     if not pid_file.exists():
         return True, "Daemon not running (optional — needed for TTL auto-destroy)"
     pid = pid_file.read_text(encoding="utf-8").strip()
+    if _IS_WINDOWS:
+        if _windows_pid_alive(int(pid)):
+            return True, f"Daemon running (PID: {pid})"
+        return False, f"Daemon PID file exists but process {pid} not found (stale PID?)"
     try:
         import os as _os
 
