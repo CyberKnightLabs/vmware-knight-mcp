@@ -15,7 +15,7 @@ VMware Knight also includes VMware lifecycle, deployment, guest operations, clus
 
 > VMware Knight is a community project and is not an official VMware product.
 
-> **Platforms:** macOS, Linux and Windows 10/11. Windows users: see [Option C — Windows](#option-c--windows) for installation, and [docs/windows-codex.md](docs/windows-codex.md) for Codex.
+> **Platforms:** macOS, Linux and Windows 10/11. **Windows users:** follow the Windows user guide in [Option C — Windows](#option-c--windows). Its PATH commands for `uv` and Git are required on Windows; the install fails without them. For Codex, also see [docs/windows-codex.md](docs/windows-codex.md).
 
 ---
 
@@ -417,25 +417,70 @@ vmware-knight-mcp
 
 ## Option C — Windows
 
-VMware Knight runs natively on Windows 10 and 11. Run these commands in **PowerShell** (no administrator rights needed).
+**Windows user guide — installation.** VMware Knight runs natively on Windows 10 and 11. Run these commands in **PowerShell** (no administrator rights needed), one step at a time, and don't move on until each check passes.
 
-Install `uv` and Git, if you don't have them yet:
+> **Required on Windows: the PATH commands in Steps 3 and 6.** You must run them so PowerShell can find `uv`, Git and `vmware-knight`. Do not skip them, even if you opened a new window.
+>
+> **Why:** a PowerShell window that is already open does not see programs installed after it started. This includes a **new tab** in the same Windows Terminal, which inherits the old PATH. That is what causes errors like `uv : The term 'uv' is not recognized` or `Git executable not found`. Step 3 below fixes it without closing anything.
+
+**Step 1 — Install `uv`.** `uv` downloads a suitable Python automatically, so you don't need to install Python separately.
 
 ```powershell
 powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
-winget install --id Git.Git -e
 ```
 
-`uv` downloads a suitable Python automatically, so you don't need to install Python separately. Git is needed because VMware Knight is installed straight from GitHub.
+**Step 2 — Install Git.** VMware Knight is installed straight from GitHub, so `uv` needs Git. If `winget` asks you to accept its source agreement, answer `Y`.
 
-Open a **new** PowerShell window, then install VMware Knight:
+```powershell
+winget install --id Git.Git -e --source winget
+```
+
+If `winget` is not available (some older Windows 10 installs), install Git from [git-scm.com/download/win](https://git-scm.com/download/win) and keep the default "Git from the command line" option.
+
+**Step 3 — Add `uv` and Git to PATH (required).** You must run this command. It reads the PATH that the two installers just saved, so the current window can find `uv` and `git`:
+
+```powershell
+$env:Path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [Environment]::GetEnvironmentVariable("Path", "User")
+```
+
+**Step 4 — Check both tools.** Both commands must print a version:
+
+```powershell
+uv --version
+git --version
+```
+
+If `git --version` still says *not recognized*, check that Git is on disk:
+
+```powershell
+Test-Path "C:\Program Files\Git\cmd\git.exe"
+```
+
+If that prints `True`, Git is installed but its installer did not add it to PATH. You must add it permanently for your user, then repeat Steps 3 and 4:
+
+```powershell
+$userPath = [string][Environment]::GetEnvironmentVariable("Path", "User")
+[Environment]::SetEnvironmentVariable("Path", ($userPath.TrimEnd(";") + ";C:\Program Files\Git\cmd").TrimStart(";"), "User")
+```
+
+If it prints `False`, Git did not install: run Step 2 again, or use the installer from git-scm.com.
+
+**Step 5 — Install VMware Knight.**
 
 ```powershell
 uv tool install git+https://github.com/CyberKnightLabs/vmware-knight-mcp.git
-uv tool update-shell
 ```
 
-`uv tool update-shell` adds `%USERPROFILE%\.local\bin` to your `PATH`. Open a new PowerShell window again, then verify:
+To install a specific release instead of the latest code, add the tag, for example `...vmware-knight-mcp.git@v1.12.5`.
+
+**Step 6 — Add VMware Knight to PATH (required).** You must run both commands. `uv tool update-shell` adds `%USERPROFILE%\.local\bin` to your PATH. Step 3's command makes the current window see it:
+
+```powershell
+uv tool update-shell
+$env:Path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [Environment]::GetEnvironmentVariable("Path", "User")
+```
+
+**Step 7 — Check the install.**
 
 ```powershell
 where.exe vmware-knight
@@ -1497,7 +1542,14 @@ uv sync
 vmware-knight --help
 ```
 
-On Windows, if PowerShell says `vmware-knight` is not recognized, run `uv tool update-shell`, open a new PowerShell window, and check with `where.exe vmware-knight`.
+On Windows, if PowerShell says `uv`, `git` or `vmware-knight` is *not recognized*, the program is usually installed but the window has an old PATH. Reload it and check again:
+
+```powershell
+$env:Path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [Environment]::GetEnvironmentVariable("Path", "User")
+where.exe uv git vmware-knight
+```
+
+If `vmware-knight` is still missing, run `uv tool update-shell` and reload again. If `git` is still missing, see Step 4 of [Option C — Windows](#option-c--windows). The same applies to `uv tool install` failing with `Git executable not found`.
 
 ## Check VMware configuration
 
