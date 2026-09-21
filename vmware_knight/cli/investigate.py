@@ -73,7 +73,9 @@ def investigate_vm_cmd(
 @cli_errors
 @audited("host_investigation_bundle")
 def investigate_host_cmd(
-    host_name: Annotated[str, typer.Argument(help="Exact ESXi host name to investigate")],
+    host_name: Annotated[
+        str, typer.Argument(help="ESXi host name (any case or short form) or management IP")
+    ],
     hours: _Hours = 24,
     html: _Html = False,
     html_path: _HtmlPath = None,
@@ -84,8 +86,12 @@ def investigate_host_cmd(
     from vmware_monitor.cli_observability import render_bundle_console, write_bundle_html_snapshot
     from vmware_monitor.ops.investigate_host import get_host_investigation_bundle
 
+    from vmware_knight.ops.inventory import resolve_host_name
+
     si, cfg = _get_connection(target, config)
     tgt = _tgt(target, cfg)
+    tcfg = cfg.get_target(target) if target else cfg.default_target
+    host_name = resolve_host_name(si, host_name, aliases=(tcfg.name, tcfg.tag, tcfg.host))
     bundle = normalize_branding(get_host_investigation_bundle(si, host_name, hours=hours))
     _audit.log_query(
         target=tgt, resource=host_name, query_type="host_investigation_bundle", skill="knight"
