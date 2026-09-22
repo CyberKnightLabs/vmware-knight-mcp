@@ -15,7 +15,9 @@ VMware Knight also includes VMware lifecycle, deployment, guest operations, clus
 
 > VMware Knight is a community project and is not an official VMware product.
 
-> **Platforms:** macOS, Linux and Windows 10/11. **Windows users:** follow the Windows user guide in [Option C — Windows](#option-c--windows). Its PATH commands for `uv` and Git are required on Windows; the install fails without them. For Codex, also see [docs/windows-codex.md](docs/windows-codex.md).
+> **Platforms:** macOS, Linux and Windows 10/11.
+> - **macOS users:** follow the [macOS user guide](#macos-user-guide). Its PATH commands (Steps 3 and 5) are required.
+> - **Windows users:** follow the Windows user guide in [Option C — Windows](#option-c--windows). Its PATH commands for `uv` and Git (Steps 3 and 6) are required; the install fails without them. For Codex, also see [docs/windows-codex.md](docs/windows-codex.md).
 
 ---
 
@@ -371,9 +373,88 @@ vmware-knight
 
 # 3. Installation
 
+## macOS user guide
+
+**macOS user guide — installation.** Use this on a Mac that has never run VMware Knight. Run the commands in **Terminal**, one step at a time, and don't move on until each check passes. No administrator rights are needed, except for the Apple installer in Step 1.
+
+> **Required on macOS: the PATH commands in Steps 3 and 5.** You must run them so Terminal can find `uv` and `vmware-knight`. Programs installed into `~/.local/bin` are not found until that folder is on your PATH. This is especially common when `uv` came from Homebrew, which does not add `~/.local/bin` for you. That causes `zsh: command not found: vmware-knight`.
+
+**Step 1 — Install Git.** A new Mac has no Git until Apple's Command Line Tools are installed. VMware Knight is installed straight from GitHub, so `uv` needs Git. Check first:
+
+```bash
+git --version
+```
+
+If it prints a version, go to Step 2. If a window asks you to install the command line developer tools, click **Install** and wait for it to finish. If nothing appears, start the installer yourself, then run `git --version` again:
+
+```bash
+xcode-select --install
+```
+
+**Step 2 — Install `uv`.** `uv` downloads a suitable Python automatically, so you don't need to install Python separately:
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+If you use Homebrew, `brew install uv` also works.
+
+**Step 3 — Add `~/.local/bin` to PATH (required).** You must run this command. It makes the current Terminal window see programs in `~/.local/bin`, where the `uv` installer and VMware Knight put their commands:
+
+```bash
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+Then check both tools. Both commands must print a version:
+
+```bash
+uv --version
+git --version
+```
+
+**Step 4 — Install VMware Knight.**
+
+```bash
+uv tool install git+https://github.com/CyberKnightLabs/vmware-knight-mcp.git
+```
+
+To install a specific release instead of the latest code, add the tag, for example `...vmware-knight-mcp.git@v1.12.10`.
+
+**Step 5 — Keep VMware Knight on PATH (required).** You must run both commands. `uv tool update-shell` adds `~/.local/bin` to your shell profile (`~/.zshrc`) so every new Terminal window finds `vmware-knight`. The `export` line applies it to this window too:
+
+```bash
+uv tool update-shell
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+**Step 6 — Check the install.**
+
+```bash
+which vmware-knight
+vmware-knight --help
+```
+
+`which` should print a path like:
+
+```text
+/Users/USERNAME/.local/bin/vmware-knight
+```
+
+**Step 7 — Run the wizard** to add your targets and tags, test the connections, and connect Claude Desktop or Codex (option 7):
+
+```bash
+vmware-knight wizard
+```
+
+The wizard saves your targets in `~/.vmware-knight/` and writes the full path of VMware Knight into your MCP client's config, so Claude Desktop and Codex find it without relying on PATH. Fully quit and reopen the client after option 7, then start a new chat.
+
+On **Linux**, the steps are the same, except for Step 1: install Git with your package manager, for example `sudo apt install git` or `sudo dnf install git`.
+
+---
+
 ## Option A — Clone from GitHub
 
-This is the recommended installation method.
+This is the recommended installation method. On a new Mac, follow the [macOS user guide](#macos-user-guide) first. It covers installing `uv` and Git, and the required PATH steps.
 
 ```bash
 git clone https://github.com/CyberKnightLabs/vmware-knight-mcp.git
@@ -471,7 +552,7 @@ If it prints `False`, Git did not install: run Step 2 again, or use the installe
 uv tool install git+https://github.com/CyberKnightLabs/vmware-knight-mcp.git
 ```
 
-To install a specific release instead of the latest code, add the tag, for example `...vmware-knight-mcp.git@v1.12.9`.
+To install a specific release instead of the latest code, add the tag, for example `...vmware-knight-mcp.git@v1.12.10`.
 
 **Step 6 — Add VMware Knight to PATH (required).** You must run both commands. `uv tool update-shell` adds `%USERPROFILE%\.local\bin` to your PATH. Step 3's command makes the current window see it:
 
@@ -1541,6 +1622,16 @@ uv sync
 ```bash
 vmware-knight --help
 ```
+
+On macOS, if Terminal says `zsh: command not found: vmware-knight` (or `uv`), `~/.local/bin` is not on your PATH. Run Step 5 of the [macOS user guide](#macos-user-guide), then check again:
+
+```bash
+uv tool update-shell
+export PATH="$HOME/.local/bin:$PATH"
+which vmware-knight
+```
+
+If `git` asks you to install the command line developer tools, see Step 1 of the macOS user guide.
 
 On Windows, if PowerShell says `uv`, `git` or `vmware-knight` is *not recognized*, the program is usually installed but the window has an old PATH. Reload it and check again:
 

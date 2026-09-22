@@ -1195,7 +1195,7 @@ wheels = [
 
 [[package]]
 name = "vmware-knight"
-version = "1.12.9"
+version = "1.12.10"
 source = { editable = "." }
 dependencies = [
     { name = "apscheduler" },
