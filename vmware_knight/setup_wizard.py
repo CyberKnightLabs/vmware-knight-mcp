@@ -4,12 +4,28 @@ from __future__ import annotations
 
 import typer
 from rich.console import Console
+from rich.markup import escape
 from rich.table import Table
 
 from vmware_knight.config import CONFIG_FILE, load_config
 from vmware_knight.init_wizard import _delete_env, _prompt_target, _write_env
 
 console = Console()
+
+
+def _print_target_choices(targets: list[dict]) -> None:
+    """Numbered target list for the edit, remove and tag menus.
+
+    Escaped because Rich reads "[...]" as markup: unescaped, "[tag: server56]"
+    was swallowed and the menus showed no tags at all.
+    """
+    console.print("\n[bold]Configured targets:[/]")
+    for idx, target in enumerate(targets, start=1):
+        line = (
+            f"{idx}. {target.get('name')} "
+            f"[tag: {target.get('tag') or '-'}] — {target.get('host')}"
+        )
+        console.print(escape(line))
 
 
 def _list_targets() -> None:
@@ -106,13 +122,7 @@ def _edit_target() -> None:
         console.print("[yellow]No VMware targets are configured.[/]")
         return
 
-    console.print("\n[bold]Configured targets:[/]")
-    for idx, target in enumerate(targets, start=1):
-        label = target.get("tag") or target.get("name")
-        console.print(
-            f"{idx}. {target.get('name')} "
-            f"[{label}] — {target.get('host')}"
-        )
+    _print_target_choices(targets)
 
     selection = typer.prompt("Select target number", type=int)
 
@@ -238,13 +248,7 @@ def _remove_target() -> None:
         console.print("[yellow]No VMware targets are configured.[/]")
         return
 
-    console.print("\n[bold]Configured targets:[/]")
-    for idx, target in enumerate(targets, start=1):
-        label = target.get("tag") or target.get("name")
-        console.print(
-            f"{idx}. {target.get('name')} "
-            f"[{label}] — {target.get('host')}"
-        )
+    _print_target_choices(targets)
 
     selection = typer.prompt("Select target number to remove", type=int)
 
@@ -293,13 +297,7 @@ def _set_target_tag() -> None:
         console.print("[yellow]No VMware targets are configured.[/]")
         return
 
-    console.print("\n[bold]Configured targets:[/]")
-    for idx, target in enumerate(targets, start=1):
-        current_tag = target.get("tag") or "-"
-        console.print(
-            f"{idx}. {target.get('name')} "
-            f"[tag: {current_tag}] — {target.get('host')}"
-        )
+    _print_target_choices(targets)
 
     selection = typer.prompt("Select target number", type=int)
 
