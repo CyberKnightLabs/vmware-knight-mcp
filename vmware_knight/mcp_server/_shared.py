@@ -22,7 +22,13 @@ from mcp.server.fastmcp import FastMCP
 from vmware_policy import report_tool_failure, sanitize
 
 from vmware_knight import __version__
-from vmware_knight.config import ConfigError, load_config
+from vmware_knight.config import (
+    ENV_FILE,
+    ConfigError,
+    load_config,
+    reload_env_file,
+    resolve_config_path,
+)
 from vmware_knight.connection import ConnectionManager
 from vmware_knight.ops.cluster_mgmt import ClusterError, ClusterNotFoundError
 from vmware_knight.ops.datastore_browser import DatastoreBrowseError
@@ -491,18 +497,59 @@ mcp._mcp_server.version = __version__
 # ---------------------------------------------------------------------------
 
 _conn_mgr: Optional[ConnectionManager] = None
+_conn_mgr_stamp: Optional[tuple] = None  # noqa: UP045 — see the PEP 604 gate note above
+
+_log = logging.getLogger("vmware-knight.mcp")
+
+
+def _config_stamp() -> tuple:
+    """(mtime, size) of config.yaml and .env, so edits can be noticed cheaply."""
+    stamp = []
+    for path in (resolve_config_path(), ENV_FILE):
+        try:
+            st = path.stat()
+            stamp.append((str(path), st.st_mtime_ns, st.st_size))
+        except OSError:
+            stamp.append((str(path), None, None))
+    return tuple(stamp)
 
 
 def _ensure_conn_mgr() -> ConnectionManager:
-    """Lazily build the shared ConnectionManager (does not connect anything)."""
-    global _conn_mgr  # noqa: PLW0603
-    if _conn_mgr is None:
-        # No env-var read here: load_config resolves the path (explicit arg,
-        # then the environment, then the default). This copy was the reason the
-        # server and the CLI opened different files — load_config did not look
-        # at the variable at all, so only this path honoured it ( #6).
+    """Return the shared ConnectionManager, rebuilt when config.yaml or .env change.
+
+    The server is long-running and the wizard edits both files while it runs.
+    Without this, a renamed target was read from the new config.yaml while its
+    password was still looked up in the .env loaded at startup, and the call
+    failed with "Password not found" until the MCP client was restarted.
+    """
+    global _conn_mgr, _conn_mgr_stamp  # noqa: PLW0603
+    stamp = _config_stamp()
+    if _conn_mgr is not None and stamp == _conn_mgr_stamp:
+        return _conn_mgr
+    # No env-var read here: load_config resolves the path (explicit arg,
+    # then the environment, then the default). This copy was the reason the
+    # server and the CLI opened different files — load_config did not look
+    # at the variable at all, so only this path honoured it ( #6).
+    # Always, including the first build: .env may have changed between import
+    # (when it was first loaded) and the first tool call.
+    reload_env_file()
+    try:
         config = load_config()
-        _conn_mgr = ConnectionManager(config)
+    except Exception:
+        if _conn_mgr is None:
+            raise
+        # A half-written or invalid edit: keep serving the last good config and
+        # try again on the next call.
+        _log.warning("config changed but could not be loaded; keeping the previous one")
+        return _conn_mgr
+    if _conn_mgr is not None:
+        try:
+            _conn_mgr.disconnect_all()
+        except Exception:  # noqa: BLE001 — a stale session must not block the reload
+            pass
+    _conn_mgr = ConnectionManager(config)
+    # Stamp after loading: load_config may re-encode .env and change its mtime.
+    _conn_mgr_stamp = _config_stamp()
     return _conn_mgr
 
 

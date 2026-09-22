@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import Literal
 
 import yaml
-from dotenv import dotenv_values, load_dotenv, set_key
+from dotenv import dotenv_values, set_key
 
 CONFIG_DIR = Path.home() / ".vmware-knight"
 CONFIG_FILE = CONFIG_DIR / "config.yaml"
@@ -95,9 +95,36 @@ def _autoencode_env_file(env_file: Path) -> None:
     )
 
 
+#: Keys this process took from .env, with the value it set. Lets a reload
+#: replace or drop them without touching variables set by the real environment
+#: (an MCP client's ``env`` block, a shell export), which always win.
+_DOTENV_KEYS: dict[str, str] = {}
+
+
+def reload_env_file(env_file: Path | None = None) -> None:
+    """Load .env into ``os.environ``, replacing values from an earlier load.
+
+    A long-running MCP server loads .env once at import. When the wizard adds,
+    renames or changes a target's password afterwards, the server must see it
+    without a restart. Variables that did not come from .env are left alone.
+    """
+    env_file = ENV_FILE if env_file is None else env_file
+    _autoencode_env_file(env_file)
+    parsed = dotenv_values(env_file) if env_file.exists() else {}
+    values = {k: v for k, v in parsed.items() if v is not None}
+    for key, loaded in list(_DOTENV_KEYS.items()):
+        if os.environ.get(key) == loaded and values.get(key) != loaded:
+            os.environ.pop(key, None)
+            del _DOTENV_KEYS[key]
+    for key, value in values.items():
+        if key in os.environ and _DOTENV_KEYS.get(key) != os.environ[key]:
+            continue  # set by the real environment
+        os.environ[key] = value
+        _DOTENV_KEYS[key] = value
+
+
 # Auto-encode any plaintext passwords in .env, then load it into the environment
-_autoencode_env_file(ENV_FILE)
-load_dotenv(ENV_FILE)
+reload_env_file(ENV_FILE)
 
 
 def _check_env_permissions() -> None:
